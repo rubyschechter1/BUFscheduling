@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blockline — Trainer Scheduling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F3;
+    --surface:#FFFFFF;
+    --surface-alt:#ECEFEA;
+    --ink:#1B241F;
+    --ink-muted:#5C6A61;
+    --border:#DADFD7;
+    --accent:#2E6E5E;
+    --accent-dark:#204F43;
+    --accent-soft:#DCEEE7;
+    --draft:#C98A3B;
+    --draft-soft:#F3E3CB;
+    --confirm:#236B3E;
+    --confirm-soft:#D9EBDF;
+    --danger:#A6413B;
+    --radius:8px;
+    --shadow:0 1px 2px rgba(20,30,25,0.06), 0 1px 1px rgba(20,30,25,0.04);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Public Sans', system-ui, -apple-system, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.4;
+  }
+  button, input, select, textarea{font-family:inherit; font-size:inherit; color:inherit;}
+  button{cursor:pointer;}
+  h1,h2,h3,h4{margin:0; font-weight:700;}
+  .app{display:flex; min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:220px; flex:0 0 220px;
+    background:var(--accent-dark);
+    color:#EAF3EF;
+    display:flex; flex-direction:column;
+    padding:22px 14px;
+  }
+  .brand{padding:0 8px 22px 8px; border-bottom:1px solid rgba(255,255,255,0.14); margin-bottom:16px;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background:linear-gradient(135deg, #4E9C86, #235645);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:16px; color:#fff; margin-bottom:10px;
+  }
+  .brand h1{font-size:18px; color:#fff; letter-spacing:0.2px;}
+  .brand p{margin:4px 0 0; font-size:12px; color:#B9D4C7;}
+  .nav{display:flex; flex-direction:column; gap:2px;}
+  .nav button{
+    display:flex; align-items:center; gap:10px;
+    background:transparent; border:none; text-align:left;
+    color:#CFE3D9; padding:10px 12px; border-radius:7px; font-size:14px; font-weight:500;
+  }
+  .nav button:hover{background:rgba(255,255,255,0.08); color:#fff;}
+  .nav button.active{background:rgba(255,255,255,0.16); color:#fff;}
+  .nav .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:0.55;flex:0 0 auto;}
+  .sidebar-foot{margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,0.14);}
+  .sidebar-foot button{
+    width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16);
+    color:#EAF3EF; padding:8px 10px; border-radius:7px; font-size:12.5px; margin-bottom:6px;
+  }
+  .sidebar-foot button:hover{background:rgba(255,255,255,0.16);}
+  .sidebar-foot .note{font-size:11px; color:#9FC0B1; margin-top:8px; line-height:1.5;}
+
+  /* Main */
+  .main{flex:1; min-width:0; padding:24px 28px 60px; overflow-x:auto;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .view-header{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap;}
+  .view-header h2{font-size:22px;}
+  .view-header .sub{color:var(--ink-muted); font-size:13px; margin-top:2px;}
+
+  .btn{
+    background:var(--surface); border:1px solid var(--border); border-radius:7px;
+    padding:8px 14px; font-weight:600; font-size:13px; color:var(--ink);
+  }
+  .btn:hover{background:var(--surface-alt);}
+  .btn-primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-danger{background:#fff; border-color:var(--danger); color:var(--danger);}
+  .btn-danger:hover{background:#FBEAE9;}
+  .btn-sm{padding:5px 10px; font-size:12px; border-radius:6px;}
+  .btn:disabled{opacity:0.45; cursor:not-allowed;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);}
+  .pad{padding:16px;}
+
+  input[type=text], input[type=date], input[type=time], input[type=number], textarea, select{
+    border:1px solid var(--border); border-radius:6px; padding:7px 9px; background:#fff; width:100%;
+  }
+  input:focus, select:focus, textarea:focus, button:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+  label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-muted); margin-bottom:4px;}
+  .field{margin-bottom:12px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
+  .hint{font-size:12px; color:var(--ink-muted); margin-top:3px;}
+
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 6px; border-radius:20px; font-size:12px; font-weight:600; background:var(--surface-alt); border:1px solid var(--border);}
+  .swatch{width:10px; height:10px; border-radius:3px; flex:0 0 auto;}
+  .badge{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:0.2px;}
+  .badge.solo{background:#E4E9F5; color:#39508F;}
+  .badge.duo{background:#F5E9D6; color:#8C5A1E;}
+  .badge.either{background:var(--accent-soft); color:var(--accent-dark);}
+  .badge.full{background:#E4E9F5; color:#2C4A87;}
+  .badge.part{background:#EFEAF5; color:#5B3F91;}
+
+  /* Trainers & Clients list views */
+  .two-col{display:grid; grid-template-columns:300px 1fr; gap:18px; align-items:start;}
+  .list-item{padding:12px 14px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; align-items:center; gap:10px;}
+  .list-item:last-child{border-bottom:none;}
+  .list-item:hover{background:var(--surface-alt);}
+  .list-item.selected{background:var(--accent-soft);}
+  .list-item .meta{flex:1; min-width:0;}
+  .list-item .meta .name{font-weight:700; font-size:13.5px;}
+  .list-item .meta .sub{font-size:12px; color:var(--ink-muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .empty-state{padding:32px 20px; text-align:center; color:var(--ink-muted);}
+  .empty-state h4{color:var(--ink); margin-bottom:6px; font-size:14px;}
+
+  .avail-entry{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:12.5px;}
+  .avail-entry.off{background:#FBEFE9; border-color:#E6C7B4;}
+  .avail-entry .d{font-weight:700; width:92px; flex:0 0 auto;}
+  .avail-entry .t{color:var(--ink-muted); flex:1;}
+  .weekday-picker{display:flex; gap:5px; flex-wrap:wrap;}
+  .weekday-picker label{display:flex; align-items:center; justify-content:center; width:36px; height:30px; border:1px solid var(--border); border-radius:6px; font-size:11.5px; font-weight:700; cursor:pointer; color:var(--ink-muted); margin:0;}
+  .weekday-picker input{display:none;}
+  .weekday-picker input:checked + span{color:#fff;}
+  .weekday-picker label:has(input:checked){background:var(--accent); border-color:var(--accent); color:#fff;}
+
+  /* Schedule toolbar */
+  .sched-toolbar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px;}
+  .week-nav{display:flex; align-items:center; gap:8px;}
+  .week-nav .wk-label{font-weight:700; font-size:14.5px; min-width:190px; text-align:center;}
+  .toggle-row{display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:4px; font-size:12.5px; font-weight:600;}
+  .toggle-row button{border:none; background:transparent; padding:5px 12px; border-radius:16px;}
+  .toggle-row button.active{background:var(--accent); color:#fff;}
+  .legend-bar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .legend-bar .chip{cursor:pointer; user-select:none; border:1.5px solid var(--border); transition:background 0.15s, border-color 0.15s;}
+  .legend-bar .chip.on{font-weight:800;}
+
+  .sched-layout{display:grid; grid-template-columns:1fr 300px; gap:18px; align-items:start;}
+
+  /* Grid */
+  .grid-wrap{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;}
+  .grid-scroll{overflow-x:auto;}
+  .grid-head{display:flex; border-bottom:1px solid var(--border); background:var(--surface-alt);}
+  .grid-head .time-gutter{width:56px; flex:0 0 56px;}
+  .grid-head .day-head{flex:1 1 0; min-width:132px; padding:9px 6px; text-align:center; border-left:1px solid var(--border);}
+  .grid-head .day-head .dname{font-size:11.5px; font-weight:700; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.4px;}
+  .grid-head .day-head .dnum{font-size:16px; font-weight:800; margin-top:1px;}
+  .grid-head .day-head.today{background:var(--accent-soft);}
+  .grid-body{display:flex; position:relative;}
+  .time-gutter-col{width:56px; flex:0 0 56px; position:relative;}
+  .time-gutter-col .tlabel{position:absolute; right:8px; transform:translateY(-50%); font-size:10.5px; color:var(--ink-muted);}
+  .day-col{flex:1 1 0; min-width:132px; position:relative; border-left:1px solid var(--border); background-image:repeating-linear-gradient(to bottom, transparent, transparent 55px, #EEF1EC 55px, #EEF1EC 56px);}
+  .day-col.today{background-color:#FAFCFA;}
+  .rail{position:absolute; left:0; top:0; height:100%; display:flex; gap:1px; padding:0 3px; pointer-events:none;}
+  .rail .lane{flex:1 1 0; position:relative; background:#fff;}
+  .rail .seg{position:absolute; left:0; right:0; border-radius:2px; opacity:0.9; pointer-events:auto;}
+  .rail .seg.off{background:repeating-linear-gradient(45deg, #E3E6E0, #E3E6E0 3px, #F3F4F1 3px, #F3F4F1 6px);}
+  .heat-layer{position:absolute; left:2px; right:2px; top:0; height:100%; pointer-events:none;}
+  .heat-seg{position:absolute; left:0; right:0; border-radius:3px; background:var(--accent);}
+  .heat-seg .cnt{position:absolute; top:1px; right:3px; font-size:9.5px; font-weight:800; color:var(--accent-dark);}
+  .heat-empty{color:var(--ink-muted); font-size:11px; text-align:center; padding-top:40px;}
+  .sessions-area{position:absolute; left:66px; right:3px; top:0; bottom:0;}
+  .sessions-area.editable{cursor:copy;}
+  .client-hl{position:absolute; left:0; right:0; border:1.5px dashed var(--accent); background:rgba(46,110,94,0.08); border-radius:5px; pointer-events:none;}
+  .client-hl.second{border-color:#39508F; background:rgba(57,80,143,0.08);}
+  .match-hl{position:absolute; left:2px; right:2px; border:2px solid var(--confirm); background:rgba(35,107,62,0.30); border-radius:5px; pointer-events:none; z-index:2;}
+  .match-hl .lbl{position:absolute; top:2px; left:4px; font-size:10px; font-weight:800; color:var(--confirm-soft); background:var(--confirm); padding:1px 5px; border-radius:4px;}
+  .sess-block{position:absolute; border-radius:6px; padding:4px 6px; overflow:hidden; color:#fff; font-size:11px; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.18); border:1px solid rgba(0,0,0,0.08);}
+  .sess-block:hover{filter:brightness(1.06);}
+  .sess-block.draft{background-image:repeating-linear-gradient(135deg, rgba(255,255,255,0.16) 0 6px, rgba(255,255,255,0.02) 6px 12px);}
+  .sess-block .st{font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; opacity:0.85; display:block;}
+  .sess-block .nm{display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  /* Match finder panel */
+  .panel-title{font-size:14px; font-weight:800; margin-bottom:4px;}
+  .panel-sub{font-size:12px; color:var(--ink-muted); margin-bottom:12px;}
+  .match-slot{border:1px solid var(--border); border-radius:7px; padding:9px 10px; margin-bottom:8px;}
+  .match-slot .when{font-weight:700; font-size:12.5px;}
+  .match-slot .trainers{font-size:11.5px; color:var(--ink-muted); margin:3px 0 8px;}
+
+  /* Modal */
+  .overlay{position:fixed; inset:0; background:rgba(20,30,25,0.42); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff; border-radius:12px; width:100%; max-width:440px; max-height:88vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.25);}
+  .modal-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;}
+  .modal-head h3{font-size:16px;}
+  .modal-head button{background:none; border:none; font-size:20px; line-height:1; color:var(--ink-muted); padding:2px 6px;}
+  .modal-body{padding:18px 20px;}
+  .modal-foot{padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; gap:8px;}
+  .seg-control{display:flex; border:1px solid var(--border); border-radius:7px; overflow:hidden;}
+  .seg-control button{flex:1; padding:8px; background:#fff; border:none; border-right:1px solid var(--border); font-weight:600; font-size:12.5px;}
+  .seg-control button:last-child{border-right:none;}
+  .seg-control button.active{background:var(--accent); color:#fff;}
+  .client-pick-list{max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px;}
+  .client-pick-list label{display:flex; align-items:center; gap:8px; padding:7px 10px; font-weight:500; font-size:13px; color:var(--ink); border-bottom:1px solid var(--border); cursor:pointer;}
+  .client-pick-list label:last-child{border-bottom:none;}
+  .client-pick-list label:hover{background:var(--surface-alt);}
+  .client-pick-list input{width:auto;}
+
+  @media (max-width: 980px){
+    .sched-layout{grid-template-columns:1fr;}
+    .two-col{grid-template-columns:1fr;}
+  }
+  @media (max-width: 720px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%; flex:none; flex-direction:row; align-items:center; padding:12px 14px;}
+    .brand{border:none; padding:0; margin:0 14px 0 0;}
+    .brand p{display:none;}
+    .nav{flex-direction:row;}
+    .sidebar-foot{display:none;}
+    .main{padding:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <h1>Blockline</h1>
+      <p>Trainer &amp; client scheduling</p>
+    </div>
+    <div class="nav">
+      <button data-tab="schedule" class="active"><span class="dot"></span>Schedule</button>
+      <button data-tab="trainers"><span class="dot"></span>Trainers</button>
+      <button data-tab="clients"><span class="dot"></span>Clients</button>
+    </div>
+    <div class="sidebar-foot">
+      <button id="btnExport">Export backup (.json)</button>
+      <button id="btnImport">Import backup</button>
+      <input type="file" id="fileImport" accept="application/json" style="display:none;">
+      <div class="note">Everything is saved in this browser only. Export a backup before clearing browser data or switching computers.</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- SCHEDULE VIEW -->
+    <div class="view active" id="view-schedule">
+      <div class="view-header">
+        <div>
+          <h2>Schedule</h2>
+          <div class="sub">Shaded areas show how many trainers are free — darker means more options. Select a trainer below to see their exact hours in color.</div>
+        </div>
+      </div>
+
+      <div class="sched-toolbar">
+        <div class="week-nav">
+          <button class="btn btn-sm" id="prevWeek">&larr; Prev</button>
+          <div class="wk-label" id="wkLabel">—</div>
+          <button class="btn btn-sm" id="nextWeek">Next &rarr;</button>
+          <button class="btn btn-sm" id="todayBtn">This week</button>
+        </div>
+        <div class="toggle-row">
+          <button data-mode="view" id="modeView">View only</button>
+          <button data-mode="edit" id="modeEdit" class="active">Edit</button>
+        </div>
+      </div>
+
+      <div class="legend-bar" id="trainerLegend"></div>
+      <div id="modeHint" class="hint" style="margin:-6px 0 8px;"></div>
+      <div id="exclusionHint" class="hint" style="margin:-4px 0 12px;"></div>
+
+      <div class="sched-layout">
+        <div class="grid-wrap">
+          <div class="grid-scroll">
+            <div id="gridHead" class="grid-head"></div>
+            <div id="gridBody" class="grid-body"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div class="card pad">
+            <div class="panel-title">Match finder</div>
+            <div class="panel-sub">Pick one or two clients — the actual bookable windows will be highlighted in solid green on the grid, and listed below with full-time, under-hours trainers suggested first.</div>
+            <div class="field">
+              <label>Client A</label>
+              <select id="matchClientA"></select>
+            </div>
+            <div class="field">
+              <label>Client B (for 1-on-2 only)</label>
+              <select id="matchClientB"><option value="">— none —</option></select>
+            </div>
+            <div id="matchResults"></div>
+          </div>
+
+          <div class="card pad">
+            <div class="panel-title">This week's hours</div>
+            <div class="panel-sub">Full-time trainers are listed first so you can prioritize filling their hours.</div>
+            <div id="hoursPanel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAINERS VIEW -->
+    <div class="view" id="view-trainers">
+      <div class="view-header">
+        <div>
+          <h2>Trainers</h2>
+          <div class="sub">Add trainers, then block out when each one is available (or on vacation) across the months ahead.</div>
+        </div>
+        <button class="btn btn-primary" id="addTrainerBtn">+ Add trainer</button>
+      </div>
+      <div class="two-col">
+        <div class="card" id="trainerList"></div>
+        <div id="trainerDetail"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTS VIEW -->
+    <div class="view" id="view-clients">
+      <div class="view-header">
+        <div>
+          <h2>Clients</h2>
+          <div class="sub">Log each client's session type and the availability they text you back, week by week.</div>
+        </div>
+        <button class="btn btn-primary" id="addClientBtn">+ Add client</button>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="field" style="margin-bottom:10px;">
+            <input type="text" id="clientSearch" placeholder="Search clients by name…">
+          </div>
+          <div class="card" id="clientList"></div>
+        </div>
+        <div id="clientDetail"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Session modal -->
+<div class="overlay" id="sessionOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="sessionModalTitle">New session</h3>
+      <button id="sessionClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="row2">
+        <div class="field"><label>Date</label><input type="date" id="sessDate"></div>
+        <div class="field"><label>Status</label>
+          <div class="seg-control">
+            <button type="button" data-status="draft" id="segDraft">Draft</button>
+            <button type="button" data-status="confirmed" id="segConfirmed">Confirmed</button>
+          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Start</label><input type="time" id="sessStart" step="900"></div>
+        <div class="field"><label>End</label><input type="time" id="sessEnd" step="900"></div>
+      </div>
+      <div class="field">
+        <label>Trainer</label>
+        <select id="sessTrainer"></select>
+        <div class="hint" id="sessTrainerHint" style="display:none;"></div>
+      </div>
+      <div class="field">
+        <label>Session type</label>
+        <div class="seg-control">
+          <button type="button" data-type="solo" id="segSolo">1-on-1</button>
+          <button type="button" data-type="duo" id="segDuo">1-on-2</button>
+        </div>
+      </div>
+      <div class="field">
+        <label id="clientPickLabel">Client(s)</label>
+        <div class="client-pick-list" id="clientPickList"></div>
+      </div>
+      <div class="hint" id="sessConfirmHint">Marking a session "Confirmed" is just a note to yourself that you've told both sides and sent the Google Calendar invite — Blockline doesn't touch your calendar.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="sessDelete" style="display:none;">Delete session</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="sessCancel">Cancel</button>
+      <button class="btn btn-primary" id="sessSave">Save session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trainer modal (add/edit trainer) -->
+<div class="overlay" id="trainerOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="trainerModalTitle">Add trainer</h3><button id="trainerClose">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Name</label><input type="text" id="trainerName" placeholder="e.g. Jordan Lee"></div>
+      <div class="field"><label>Color</label><div id="colorPicker" style="display:flex; gap:8px; flex-wrap:wrap;"></div></div>
+      <div class="row2">
+        <div class="field">
+          <label>Employment</label>
+          <div class="seg-control">
+            <button type="button" data-emp="full" id="empFull">Full-time</button>
+            <button type="button" data-emp="part" id="empPart">Part-time</button>
+          </div>
+        </div>
+        <div class="field"><label>Target hours / week</label><input type="number" id="trainerTarget" min="0" step="0.5"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="trainerDelete" style="display:none;">Delete trainer</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="trainerCancel">Cancel</button>
+      <button class="btn btn-primary" id="trainerSave">Save trainer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Client modal (add/edit client) -->
+<div class="overlay" id="clientOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="clientModalTitle">Add client</h3><button id="clientClose">&times;</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Name</label><input type="text" id="clientName" placeholder="e.g. Sam Rivera"></div>
+      <div class="field">
+        <label>Session type</label>
+        <div class="seg-control">
+          <button type="button" data-ctype="solo" id="ctSolo">1-on-1 only</button>
+          <button type="button" data-ctype="duo" id="ctDuo">1-on-2 only</button>
+          <button type="button" data-ctype="either" id="ctEither">Either</button>
+        </div>
+      </div>
+      <div class="field"><label>Notes</label><textarea id="clientNotes" rows="3" placeholder="Anything worth remembering — goals, injuries, preferred partner, etc."></textarea></div>
+      <div class="field">
+        <label>Won't train with</label>
+        <div class="client-pick-list" id="excludedTrainerList"></div>
+        <div class="hint">Checked trainers won't show up as available for this client anywhere in the schedule.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" id="clientDelete" style="display:none;">Delete client</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="clientCancel">Cancel</button>
+      <button class="btn btn-primary" id="clientSave">Save client</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------------
+   STORAGE LAYER
+   Everything funnels through Store.* so this can later be swapped for
+   real API calls (fetch to a backend) without touching the UI code.
+--------------------------------------------------------------------- */
+const STORAGE_KEY = "blockline_data_v1";
+
+const Store = {
+  load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return Store.blank();
+      const parsed = JSON.parse(raw);
+      return Object.assign(Store.blank(), parsed);
+    }catch(e){
+      console.error("Failed to load data", e);
+      return Store.blank();
+    }
+  },
+  save(data){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    }catch(e){
+      console.error("Failed to save data", e);
+      alert("Could not save changes. Your browser storage may be full or unavailable.");
+      return false;
+    }
+  },
+  blank(){
+    return { trainers: [], trainerAvailability: [], clients: [], clientAvailability: [], sessions: [] };
+  }
+};
+
+let DATA = Store.load();
+// Backward-compat: fill in fields that may not exist on data saved by older versions.
+function normalizeData(){
+  DATA.trainers.forEach(t=>{
+    if(!t.employmentType) t.employmentType = 'full';
+    if(t.targetHours==null) t.targetHours = t.employmentType==='part' ? 15 : 30;
+  });
+  DATA.clients.forEach(c=>{
+    if(!c.excludedTrainerIds) c.excludedTrainerIds = [];
+  });
+}
+normalizeData();
+function persist(){ Store.save(DATA); }
+
+/* ---------------------------------------------------------------------
+   UTIL
+--------------------------------------------------------------------- */
+function uid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+function fmtDate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function parseDate(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function addDays(d, n){ const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function startOfWeek(d){ const r = new Date(d); const day = (r.getDay()+6)%7; return addDays(r, -day); } // Monday start
+function timeToMin(t){ const [h,m] = t.split(':').map(Number); return h*60+m; }
+function minToTime(m){ m = Math.max(0, Math.round(m)); return pad2(Math.floor(m/60)%24)+':'+pad2(m%60); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function fmtNiceDate(d){ return d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}); }
+function fmtTimeRange(s,e){ return fmtTime12(s) + ' – ' + fmtTime12(e); }
+function fmtTime12(t){
+  let [h,m] = t.split(':').map(Number);
+  const ap = h>=12 ? 'pm':'am';
+  h = h%12; if(h===0) h=12;
+  return h + (m ? ':'+pad2(m) : '') + ap;
+}
+const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const WEEKDAY_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// Formats one availability entry back into the quick-edit text format,
+// e.g. {date:'2026-09-05', start:'13:00', end:'17:00'} -> "Saturday 9/5/26 13:00-17:00"
+function formatAvailLine(a){
+  const d = parseDate(a.date);
+  const weekday = WEEKDAY_FULL[d.getDay()];
+  const dateStr = (d.getMonth()+1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(-2);
+  return `${weekday} ${dateStr} ${a.start}-${a.end}`;
+}
+
+// Parses lines like "Tuesday 9/5/26 13:00-17:00" (day name is optional and only
+// used to sanity-check the date; times may be "13:00-17:00" or "1:00pm-5:00pm").
+function parseAvailabilityText(raw){
+  const entries = [], errors = [], warnings = [];
+  const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  const lineRe = /^(?:([A-Za-z]+)\s+)?(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*$/i;
+  lines.forEach((line, i)=>{
+    const m = line.match(lineRe);
+    if(!m){ errors.push(`Line ${i+1} ("${line}") wasn't in a recognized format — expected e.g. "Tuesday 9/5/26 13:00-17:00".`); return; }
+    const [, dayName, moStr, dStr, yStr, sh, sm, sap, eh, em, eap] = m;
+    let month = Number(moStr), day = Number(dStr), year = Number(yStr);
+    if(yStr.length===2) year += 2000;
+    if(month<1||month>12||day<1||day>31){ errors.push(`Line ${i+1}: "${moStr}/${dStr}/${yStr}" isn't a valid date.`); return; }
+    const dateObj = new Date(year, month-1, day);
+    if(dateObj.getMonth()!==month-1 || dateObj.getDate()!==day){ errors.push(`Line ${i+1}: "${moStr}/${dStr}/${yStr}" isn't a valid date.`); return; }
+
+    let startH = Number(sh), startM = sm?Number(sm):0;
+    let endH = Number(eh), endM = em?Number(em):0;
+    if(sap){ const p=sap.toLowerCase(); if(p==='pm' && startH<12) startH+=12; if(p==='am' && startH===12) startH=0; }
+    if(eap){ const p=eap.toLowerCase(); if(p==='pm' && endH<12) endH+=12; if(p==='am' && endH===12) endH=0; }
+    if(startH>23||endH>23||startM>59||endM>59){ errors.push(`Line ${i+1}: time isn't valid.`); return; }
+    const start = minToTime(startH*60+startM), end = minToTime(endH*60+endM);
+    if(start>=end){ errors.push(`Line ${i+1}: start time must be before end time.`); return; }
+
+    if(dayName){
+      const actual = WEEKDAY_FULL[dateObj.getDay()];
+      if(!actual.toLowerCase().startsWith(dayName.toLowerCase()) && !dayName.toLowerCase().startsWith(actual.toLowerCase().slice(0,3))){
+        warnings.push(`Note: ${moStr}/${dStr}/${yStr} is actually a ${actual}, not ${dayName} — added it anyway using the date.`);
+      }
+    }
+    entries.push({ date: fmtDate(dateObj), start, end });
+  });
+  return { entries, errors, warnings };
+}
+
+// Interval helpers. Intervals are [startMin, endMin], assumed non-negative, same day.
+function mergeIntervals(list){
+  const sorted = list.slice().sort((a,b)=>a[0]-b[0]);
+  const out = [];
+  for(const iv of sorted){
+    if(out.length && iv[0] <= out[out.length-1][1]){
+      out[out.length-1][1] = Math.max(out[out.length-1][1], iv[1]);
+    } else {
+      out.push(iv.slice());
+    }
+  }
+  return out;
+}
+function subtractIntervals(base, subs){
+  let result = base.map(iv=>iv.slice());
+  for(const s of mergeIntervals(subs)){
+    const next = [];
+    for(const b of result){
+      if(s[1] <= b[0] || s[0] >= b[1]){ next.push(b); continue; }
+      if(s[0] > b[0]) next.push([b[0], Math.min(s[0], b[1])]);
+      if(s[1] < b[1]) next.push([Math.max(s[1], b[0]), b[1]]);
+    }
+    result = next.filter(iv=>iv[1]>iv[0]);
+  }
+  return result;
+}
+function intersectIntervals(a, b){
+  const out = [];
+  for(const x of a){
+    for(const y of b){
+      const s = Math.max(x[0], y[0]);
+      const e = Math.min(x[1], y[1]);
+      if(e > s) out.push([s,e]);
+    }
+  }
+  return mergeIntervals(out);
+}
+
+const TRAINER_COLORS = ['#2E6E5E','#B5533C','#4C6FB1','#C98A3B','#7C5CBF','#3E8E8E','#A6494F','#5B7B3F','#8C6A46','#4A5A8C','#B08A2E','#5F7A93'];
+
+/* ---------------------------------------------------------------------
+   APP STATE
+--------------------------------------------------------------------- */
+const UI = {
+  tab: 'schedule',
+  weekStart: startOfWeek(new Date()),
+  editMode: true,
+  visibleTrainers: new Set(), // filled after load
+  selectedTrainerId: null,
+  selectedClientId: null,
+  clientSearch: '',
+  sessionModal: { editingId:null, date:null, status:'draft', type:'solo', trainerId:null, clientIds:[] },
+  trainerModal: { editingId:null, color: TRAINER_COLORS[0], employmentType:'full', targetHours:30 },
+  clientModal: { editingId:null, type:'either', excluded:[] }
+};
+
+const GRID_START = 6*60;   // 6:00am
+const GRID_END = 21*60;    // 9:00pm
+const SLOT = 30;           // minutes
+const ROW_H = 28;          // px per slot
+const TOTAL_ROWS = (GRID_END-GRID_START)/SLOT;
+const GRID_HEIGHT = TOTAL_ROWS*ROW_H;
+
+function trainerById(id){ return DATA.trainers.find(t=>t.id===id); }
+function clientById(id){ return DATA.clients.find(c=>c.id===id); }
+
+/* ---------------------------------------------------------------------
+   AVAILABILITY / BOOKED-TIME COMPUTATION
+--------------------------------------------------------------------- */
+function trainerFreeIntervals(trainerId, dateStr, opts){
+  opts = opts || {};
+  const entries = DATA.trainerAvailability.filter(a=>a.trainerId===trainerId && a.date===dateStr);
+  let base = mergeIntervals(entries.filter(a=>a.type==='available').map(a=>[timeToMin(a.start), timeToMin(a.end)]));
+  const off = entries.filter(a=>a.type==='off').map(a=>[timeToMin(a.start), timeToMin(a.end)]);
+  let free = subtractIntervals(base, off);
+  if(!opts.keepBooked){
+    const booked = DATA.sessions.filter(s=>s.trainerId===trainerId && s.date===dateStr && (!opts.excludeSessionId || s.id!==opts.excludeSessionId))
+      .map(s=>[timeToMin(s.start), timeToMin(s.end)]);
+    free = subtractIntervals(free, booked);
+  }
+  return free;
+}
+function trainerRawAvailability(trainerId, dateStr){
+  const entries = DATA.trainerAvailability.filter(a=>a.trainerId===trainerId && a.date===dateStr);
+  const base = mergeIntervals(entries.filter(a=>a.type==='available').map(a=>[timeToMin(a.start), timeToMin(a.end)]));
+  const off = entries.filter(a=>a.type==='off').map(a=>[timeToMin(a.start), timeToMin(a.end)]);
+  return { base, off };
+}
+function clientFreeIntervals(clientId, dateStr, opts){
+  opts = opts || {};
+  const entries = DATA.clientAvailability.filter(a=>a.clientId===clientId && a.date===dateStr);
+  let base = mergeIntervals(entries.map(a=>[timeToMin(a.start), timeToMin(a.end)]));
+  const booked = DATA.sessions.filter(s=>s.date===dateStr && s.clientIds.includes(clientId) && (!opts.excludeSessionId || s.id!==opts.excludeSessionId))
+    .map(s=>[timeToMin(s.start), timeToMin(s.end)]);
+  return subtractIntervals(base, booked);
+}
+
+// Sweep-line: for a day, breaks the grid window into segments where the SET of
+// free trainers is constant, so the heatmap can shade by how many are free.
+function computeHeatSegments(dateStr, trainerList){
+  const perTrainer = trainerList.map(t=>({ t, intervals: trainerFreeIntervals(t.id, dateStr) }));
+  const points = new Set([GRID_START, GRID_END]);
+  perTrainer.forEach(({intervals})=>{
+    intervals.forEach(iv=>{
+      const s = Math.max(iv[0], GRID_START), e = Math.min(iv[1], GRID_END);
+      if(e>s){ points.add(s); points.add(e); }
+    });
+  });
+  const bounds = Array.from(points).sort((a,b)=>a-b);
+  const segs = [];
+  for(let i=0;i<bounds.length-1;i++){
+    const s = bounds[i], e = bounds[i+1];
+    if(e<=s) continue;
+    const mid = (s+e)/2;
+    const names = perTrainer.filter(({intervals})=> intervals.some(iv=> iv[0]<=mid && iv[1]>=mid)).map(x=>x.t.name);
+    segs.push({ start:s, end:e, count:names.length, names });
+  }
+  return segs;
+}
+
+function trainerTargetHours(t){ return t.targetHours!=null ? t.targetHours : (t.employmentType==='part' ? 15 : 30); }
+function trainerWeekHours(trainerId, dateSet){
+  const mins = DATA.sessions.filter(s=>s.trainerId===trainerId && dateSet.has(s.date))
+    .reduce((sum,s)=> sum + (timeToMin(s.end)-timeToMin(s.start)), 0);
+  return mins/60;
+}
+
+/* ---------------------------------------------------------------------
+   TAB SWITCHING
+--------------------------------------------------------------------- */
+document.querySelectorAll('.nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    UI.tab = btn.dataset.tab;
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+UI.tab).classList.add('active');
+    renderAll();
+  });
+});
+
+/* ---------------------------------------------------------------------
+   EXPORT / IMPORT
+--------------------------------------------------------------------- */
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'blockline-backup-'+fmtDate(new Date())+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('fileImport').click());
+document.getElementById('fileImport').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!confirm('Import this backup? It will replace all current data in this browser.')) return;
+      DATA = Object.assign(Store.blank(), parsed);
+      normalizeData();
+      persist();
+      UI.visibleTrainers = new Set();
+      renderAll();
+    }catch(err){
+      alert('That file could not be read as a Blockline backup.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+/* =======================================================================
+   TRAINERS TAB
+======================================================================= */
+function renderTrainersTab(){
+  const list = document.getElementById('trainerList');
+  if(DATA.trainers.length===0){
+    list.innerHTML = `<div class="empty-state"><h4>No trainers yet</h4>Add your first trainer to start blocking out availability.</div>`;
+  } else {
+    const sorted = DATA.trainers.slice().sort((a,b)=> (a.employmentType==='full'?0:1) - (b.employmentType==='full'?0:1));
+    list.innerHTML = sorted.map(t=>{
+      const upcoming = DATA.trainerAvailability.filter(a=>a.trainerId===t.id && a.date >= fmtDate(new Date())).length;
+      const emp = t.employmentType||'full';
+      return `<div class="list-item ${t.id===UI.selectedTrainerId?'selected':''}" data-id="${t.id}">
+        <span class="swatch" style="background:${t.color}"></span>
+        <div class="meta"><div class="name">${escapeHtml(t.name)} <span class="badge ${emp}">${emp==='full'?'Full-time':'Part-time'}</span></div><div class="sub">${upcoming} upcoming availability block${upcoming===1?'':'s'} · target ${t.targetHours!=null?t.targetHours:30}h/wk</div></div>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.list-item').forEach(el=>{
+      el.addEventListener('click', ()=>{ UI.selectedTrainerId = el.dataset.id; renderTrainersTab(); });
+    });
+  }
+  renderTrainerDetail();
+}
+
+function renderTrainerDetail(){
+  const box = document.getElementById('trainerDetail');
+  const t = trainerById(UI.selectedTrainerId);
+  if(!t){
+    box.innerHTML = `<div class="card empty-state"><h4>Select a trainer</h4>Choose a trainer on the left to manage their availability, or add a new one.</div>`;
+    return;
+  }
+  const today = fmtDate(new Date());
+  const upcoming = DATA.trainerAvailability
+    .filter(a=>a.trainerId===t.id && a.date>=today)
+    .sort((a,b)=> a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date));
+  const emp = t.employmentType||'full';
+
+  box.innerHTML = `
+    <div class="card pad" style="margin-bottom:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="swatch" style="width:14px;height:14px;background:${t.color}"></span>
+          <h3 style="font-size:17px;">${escapeHtml(t.name)}</h3>
+          <span class="badge ${emp}">${emp==='full'?'Full-time':'Part-time'}</span>
+        </div>
+        <button class="btn btn-sm" id="editTrainerBtn">Edit</button>
+      </div>
+      <div class="hint" style="margin-top:8px;">Target: ${t.targetHours!=null?t.targetHours:30} hours/week</div>
+    </div>
+
+    <div class="card pad" style="margin-bottom:16px;">
+      <div class="panel-title">Add availability</div>
+      <div class="panel-sub">Add one or more time blocks — e.g. 9:00–4:00 and 8:00–10:00 on the same day — and choose whether it repeats weekly, like a calendar event.</div>
+
+      <div class="field">
+        <label>Repeats</label>
+        <select id="availRepeat">
+          <option value="none">Does not repeat</option>
+          <option value="weekly" selected>Weekly, on selected days</option>
+        </select>
+      </div>
+
+      <div id="availSingleDateRow" class="field" style="display:none;">
+        <label>Date</label><input type="date" id="availSingleDate">
+      </div>
+
+      <div id="availRangeRow">
+        <div class="field">
+          <label>Days of week</label>
+          <div class="weekday-picker" id="availWeekdays">
+            ${WEEKDAYS.map((d,i)=>`<label><input type="checkbox" value="${i}"><span>${d}</span></label>`).join('')}
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Starting</label><input type="date" id="availFrom"></div>
+          <div class="field"><label>Repeat until</label><input type="date" id="availTo"></div>
+        </div>
+        <div class="field" style="display:flex; gap:6px;">
+          <button type="button" class="btn btn-sm" data-weeks="4">+4 weeks</button>
+          <button type="button" class="btn btn-sm" data-weeks="8">+8 weeks</button>
+          <button type="button" class="btn btn-sm" data-weeks="12">+12 weeks</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label><input type="checkbox" id="availAllDay" style="width:auto; margin-right:6px;">Full day off (vacation / not working at all)</label>
+      </div>
+
+      <div class="field" id="availBlocksWrap">
+        <label>Time blocks</label>
+        <div id="availBlocksList"></div>
+        <button type="button" class="btn btn-sm" id="addBlockRowBtn" style="margin-top:2px;">+ Add another time block</button>
+      </div>
+
+      <div class="field">
+        <label>Type</label>
+        <div class="seg-control">
+          <button type="button" data-avtype="available" id="avAvailable" class="active">Available</button>
+          <button type="button" data-avtype="off" id="avOff">Time off</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="addAvailBtn" style="width:100%;">Add to calendar</button>
+    </div>
+
+    <div class="card pad">
+      <div class="panel-title">Upcoming (${upcoming.length})</div>
+      <div style="max-height:340px; overflow-y:auto; margin-top:8px;">
+        ${upcoming.length===0 ? '<div class="hint">Nothing scheduled yet.</div>' : upcoming.map(a=>`
+          <div class="avail-entry ${a.type==='off'?'off':''}" data-id="${a.id}">
+            <span class="d">${a.date}</span>
+            <span class="t">${a.type==='off' ? 'Off' : 'Available'} · ${fmtTimeRange(a.start,a.end)}</span>
+            <button class="btn btn-sm" data-del-avail="${a.id}">Remove</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('editTrainerBtn').addEventListener('click', ()=> openTrainerModal(t.id));
+
+  let avType = 'available';
+  document.getElementById('avAvailable').addEventListener('click', function(){ avType='available'; this.classList.add('active'); document.getElementById('avOff').classList.remove('active'); });
+  document.getElementById('avOff').addEventListener('click', function(){ avType='off'; this.classList.add('active'); document.getElementById('avAvailable').classList.remove('active'); });
+
+  // recurrence toggle
+  document.getElementById('availRepeat').addEventListener('change', function(){
+    const weekly = this.value==='weekly';
+    document.getElementById('availRangeRow').style.display = weekly ? 'block' : 'none';
+    document.getElementById('availSingleDateRow').style.display = weekly ? 'none' : 'block';
+  });
+  document.getElementById('availRangeRow').querySelectorAll('[data-weeks]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const fromEl = document.getElementById('availFrom');
+      if(!fromEl.value) fromEl.value = fmtDate(new Date());
+      const weeks = Number(btn.dataset.weeks);
+      document.getElementById('availTo').value = fmtDate(addDays(parseDate(fromEl.value), weeks*7 - 1));
+    });
+  });
+
+  // multiple time blocks per submission
+  let blockRows = [{start:'09:00', end:'13:00'}];
+  function renderBlockRows(){
+    const list = document.getElementById('availBlocksList');
+    list.innerHTML = blockRows.map((b,i)=>`
+      <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:8px;" data-idx="${i}">
+        <div class="field" style="flex:1; margin-bottom:0;"><label>Start</label><input type="time" class="blockStart" value="${b.start}"></div>
+        <div class="field" style="flex:1; margin-bottom:0;"><label>End</label><input type="time" class="blockEnd" value="${b.end}"></div>
+        <button type="button" class="btn btn-sm removeBlockBtn" title="Remove this time block" ${blockRows.length<=1 ? 'style="visibility:hidden;"' : ''}>✕</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-idx]').forEach(row=>{
+      const idx = Number(row.dataset.idx);
+      row.querySelector('.blockStart').addEventListener('input', e=> blockRows[idx].start = e.target.value);
+      row.querySelector('.blockEnd').addEventListener('input', e=> blockRows[idx].end = e.target.value);
+      row.querySelector('.removeBlockBtn').addEventListener('click', ()=>{
+        if(blockRows.length<=1) return;
+        blockRows.splice(idx,1);
+        renderBlockRows();
+      });
+    });
+  }
+  renderBlockRows();
+  document.getElementById('addBlockRowBtn').addEventListener('click', ()=>{
+    blockRows.push({start:'17:00', end:'19:00'});
+    renderBlockRows();
+  });
+
+  document.getElementById('availAllDay').addEventListener('change', function(){
+    document.getElementById('availBlocksWrap').style.display = this.checked ? 'none' : 'block';
+  });
+
+  document.getElementById('addAvailBtn').addEventListener('click', ()=>{
+    const repeat = document.getElementById('availRepeat').value;
+    const allDay = document.getElementById('availAllDay').checked;
+
+    // Resolve which dates this applies to.
+    let dates = [];
+    if(repeat==='none'){
+      const single = document.getElementById('availSingleDate').value;
+      if(!single){ alert('Pick a date.'); return; }
+      dates = [single];
+    } else {
+      const from = document.getElementById('availFrom').value;
+      const to = document.getElementById('availTo').value;
+      const days = Array.from(document.querySelectorAll('#availWeekdays input:checked')).map(c=>Number(c.value));
+      if(!from || !to){ alert('Pick a starting date and a repeat-until date.'); return; }
+      if(days.length===0){ alert('Pick at least one day of the week.'); return; }
+      let d = parseDate(from);
+      const last = parseDate(to);
+      if(d>last){ alert('The starting date must be before the repeat-until date.'); return; }
+      while(d<=last){
+        const wd = (d.getDay()+6)%7;
+        if(days.includes(wd)) dates.push(fmtDate(d));
+        d = addDays(d,1);
+      }
+    }
+
+    // Resolve which time blocks apply.
+    let blocks;
+    if(allDay){
+      blocks = [{start:'00:00', end:'23:59'}];
+    } else {
+      blocks = blockRows.filter(b=>b.start && b.end);
+      if(blocks.length===0){ alert('Add at least one time block.'); return; }
+      for(const b of blocks){
+        if(b.start>=b.end){ alert('Each time block needs a start time before its end time.'); return; }
+      }
+    }
+
+    let count = 0;
+    dates.forEach(dateStr=>{
+      blocks.forEach(b=>{
+        DATA.trainerAvailability.push({ id:uid(), trainerId:t.id, date:dateStr, start:b.start, end:b.end, type:avType });
+        count++;
+      });
+    });
+    persist();
+    renderTrainerDetail();
+    renderSchedule();
+    alert(`Added ${count} calendar ${count===1?'entry':'entries'} for ${t.name}.`);
+  });
+
+  box.querySelectorAll('[data-del-avail]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      DATA.trainerAvailability = DATA.trainerAvailability.filter(a=>a.id!==btn.dataset.delAvail);
+      persist();
+      renderTrainerDetail();
+      renderSchedule();
+    });
+  });
+}
+
+document.getElementById('addTrainerBtn').addEventListener('click', ()=> openTrainerModal(null));
+
+function openTrainerModal(id){
+  const t = id ? trainerById(id) : null;
+  UI.trainerModal.editingId = id;
+  UI.trainerModal.color = t ? t.color : TRAINER_COLORS[DATA.trainers.length % TRAINER_COLORS.length];
+  UI.trainerModal.employmentType = t ? (t.employmentType||'full') : 'full';
+  UI.trainerModal.targetHours = t ? (t.targetHours!=null?t.targetHours:30) : 30;
+  document.getElementById('trainerModalTitle').textContent = t ? 'Edit trainer' : 'Add trainer';
+  document.getElementById('trainerName').value = t ? t.name : '';
+  document.getElementById('trainerTarget').value = UI.trainerModal.targetHours;
+  document.getElementById('trainerDelete').style.display = t ? 'inline-block' : 'none';
+  syncEmpButtons();
+  const picker = document.getElementById('colorPicker');
+  picker.innerHTML = TRAINER_COLORS.map(c=>`<button type="button" data-color="${c}" style="width:26px;height:26px;border-radius:50%;background:${c};border:2px solid ${c===UI.trainerModal.color?'#1B241F':'transparent'};"></button>`).join('');
+  picker.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      UI.trainerModal.color = b.dataset.color;
+      picker.querySelectorAll('button').forEach(x=>x.style.border = '2px solid transparent');
+      b.style.border = '2px solid #1B241F';
+    });
+  });
+  document.getElementById('trainerOverlay').classList.add('open');
+}
+function syncEmpButtons(){
+  document.getElementById('empFull').classList.toggle('active', UI.trainerModal.employmentType==='full');
+  document.getElementById('empPart').classList.toggle('active', UI.trainerModal.employmentType==='part');
+}
+document.getElementById('empFull').addEventListener('click', ()=>{
+  UI.trainerModal.employmentType = 'full';
+  if(document.getElementById('trainerTarget').value === '' || Number(document.getElementById('trainerTarget').value)===15) document.getElementById('trainerTarget').value = 30;
+  syncEmpButtons();
+});
+document.getElementById('empPart').addEventListener('click', ()=>{
+  UI.trainerModal.employmentType = 'part';
+  if(document.getElementById('trainerTarget').value === '' || Number(document.getElementById('trainerTarget').value)===30) document.getElementById('trainerTarget').value = 15;
+  syncEmpButtons();
+});
+document.getElementById('trainerClose').addEventListener('click', ()=> document.getElementById('trainerOverlay').classList.remove('open'));
+document.getElementById('trainerCancel').addEventListener('click', ()=> document.getElementById('trainerOverlay').classList.remove('open'));
+document.getElementById('trainerSave').addEventListener('click', ()=>{
+  const name = document.getElementById('trainerName').value.trim();
+  if(!name){ alert('Enter a name.'); return; }
+  const targetHours = Number(document.getElementById('trainerTarget').value);
+  const employmentType = UI.trainerModal.employmentType;
+  if(UI.trainerModal.editingId){
+    const t = trainerById(UI.trainerModal.editingId);
+    t.name = name; t.color = UI.trainerModal.color; t.employmentType = employmentType; t.targetHours = isNaN(targetHours)?0:targetHours;
+  } else {
+    const t = { id: uid(), name, color: UI.trainerModal.color, employmentType, targetHours: isNaN(targetHours)?0:targetHours };
+    DATA.trainers.push(t);
+    UI.selectedTrainerId = t.id;
+  }
+  persist();
+  document.getElementById('trainerOverlay').classList.remove('open');
+  renderTrainersTab();
+  renderSchedule();
+});
+document.getElementById('trainerDelete').addEventListener('click', ()=>{
+  if(!confirm('Delete this trainer? Their availability history and any sessions assigned to them will remain but show as unassigned.')) return;
+  const id = UI.trainerModal.editingId;
+  DATA.trainers = DATA.trainers.filter(t=>t.id!==id);
+  DATA.trainerAvailability = DATA.trainerAvailability.filter(a=>a.trainerId!==id);
+  UI.visibleTrainers.delete(id);
+  if(UI.selectedTrainerId===id) UI.selectedTrainerId = null;
+  persist();
+  document.getElementById('trainerOverlay').classList.remove('open');
+  renderTrainersTab();
+  renderSchedule();
+});
+
+/* =======================================================================
+   CLIENTS TAB
+======================================================================= */
+function typeLabel(type){ return type==='solo' ? '1-on-1 only' : type==='duo' ? '1-on-2 only' : 'Either'; }
+
+function renderClientsTab(){
+  const list = document.getElementById('clientList');
+  const q = (UI.clientSearch||'').trim().toLowerCase();
+  const filtered = q ? DATA.clients.filter(c=>c.name.toLowerCase().includes(q)) : DATA.clients;
+  if(DATA.clients.length===0){
+    list.innerHTML = `<div class="empty-state"><h4>No clients yet</h4>Add a client to start logging their availability.</div>`;
+  } else if(filtered.length===0){
+    list.innerHTML = `<div class="empty-state"><h4>No matches</h4>No clients match "${escapeHtml(UI.clientSearch)}".</div>`;
+  } else {
+    list.innerHTML = filtered.map(c=>`
+      <div class="list-item ${c.id===UI.selectedClientId?'selected':''}" data-id="${c.id}">
+        <div class="meta">
+          <div class="name">${escapeHtml(c.name)}</div>
+          <div class="sub"><span class="badge ${c.type}">${typeLabel(c.type)}</span></div>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('.list-item').forEach(el=>{
+      el.addEventListener('click', ()=>{ UI.selectedClientId = el.dataset.id; renderClientsTab(); });
+    });
+  }
+  renderClientDetail();
+}
+
+function renderClientDetail(){
+  const box = document.getElementById('clientDetail');
+  const c = clientById(UI.selectedClientId);
+  if(!c){
+    box.innerHTML = `<div class="card empty-state"><h4>Select a client</h4>Choose a client on the left to log their availability, or add a new one.</div>`;
+    return;
+  }
+  const today = fmtDate(new Date());
+  const upcoming = DATA.clientAvailability
+    .filter(a=>a.clientId===c.id && a.date>=today)
+    .sort((a,b)=> a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date));
+
+  box.innerHTML = `
+    <div class="card pad" style="margin-bottom:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <h3 style="font-size:17px;">${escapeHtml(c.name)}</h3>
+          <span class="badge ${c.type}" style="margin-top:6px; display:inline-block;">${typeLabel(c.type)}</span>
+        </div>
+        <button class="btn btn-sm" id="editClientBtn">Edit</button>
+      </div>
+      ${c.notes ? `<div class="hint" style="margin-top:10px; white-space:pre-wrap;">${escapeHtml(c.notes)}</div>` : ''}
+      ${(c.excludedTrainerIds||[]).length ? `<div class="hint" style="margin-top:10px;">Won't train with: ${(c.excludedTrainerIds||[]).map(tid=>{ const tt=trainerById(tid); return tt?escapeHtml(tt.name):null; }).filter(Boolean).join(', ')}</div>` : ''}
+    </div>
+
+    <div class="card pad" style="margin-bottom:16px;">
+      <div class="panel-title">Availability (edit as text)</div>
+      <div class="panel-sub">Each line is one window, e.g. <strong>Monday 1/1/26 13:00-19:00</strong>. This box always shows their upcoming availability — edit a line to change that slot, delete a line to remove it, or add a new line, then click Update.</div>
+      <div class="field">
+        <textarea id="clQuickText" rows="5" placeholder="Tuesday 9/5/26 13:00-17:00&#10;Thursday 9/7/26 14:00-17:00"></textarea>
+      </div>
+      <button class="btn btn-primary" id="clQuickAddBtn" style="width:100%;">Update availability</button>
+      <div id="clQuickResult" class="hint" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card pad" style="margin-bottom:16px;">
+      <div class="panel-title">Log availability</div>
+      <div class="panel-sub">Or add one window at a time.</div>
+      <div class="row3">
+        <div class="field"><label>Date</label><input type="date" id="clAvailDate"></div>
+        <div class="field"><label>From</label><input type="time" id="clAvailStart" value="17:00"></div>
+        <div class="field"><label>To</label><input type="time" id="clAvailEnd" value="19:00"></div>
+      </div>
+      <button class="btn btn-primary" id="addClAvailBtn" style="width:100%;">Add availability</button>
+    </div>
+
+    <div class="card pad">
+      <div class="panel-title">Upcoming (${upcoming.length})</div>
+      <div style="max-height:300px; overflow-y:auto; margin-top:8px;">
+        ${upcoming.length===0 ? '<div class="hint">Nothing logged yet.</div>' : upcoming.map(a=>`
+          <div class="avail-entry" data-id="${a.id}">
+            <span class="d">${a.date}</span>
+            <span class="t">${fmtTimeRange(a.start,a.end)}</span>
+            <button class="btn btn-sm" data-del-clavail="${a.id}">Remove</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('editClientBtn').addEventListener('click', ()=> openClientModal(c.id));
+
+  document.getElementById('clQuickText').value = upcoming.map(formatAvailLine).join('\n');
+
+  document.getElementById('clQuickAddBtn').addEventListener('click', ()=>{
+    const raw = document.getElementById('clQuickText').value;
+    const { entries, errors, warnings } = parseAvailabilityText(raw);
+    const resultBox = document.getElementById('clQuickResult');
+    if(errors.length){
+      resultBox.textContent = 'Not updated — fix these lines first: ' + errors.join(' ');
+      resultBox.style.color = 'var(--danger)';
+      return;
+    }
+    const todayStr = fmtDate(new Date());
+    DATA.clientAvailability = DATA.clientAvailability.filter(a => !(a.clientId===c.id && a.date>=todayStr));
+    entries.forEach(e=>{
+      DATA.clientAvailability.push({ id:uid(), clientId:c.id, date:e.date, start:e.start, end:e.end });
+    });
+    persist();
+    let msg = `Updated — ${entries.length} upcoming window${entries.length===1?'':'s'} saved.`;
+    if(warnings.length) msg += ' ' + warnings.join(' ');
+    resultBox.textContent = msg;
+    resultBox.style.color = 'var(--ink-muted)';
+    renderClientDetail();
+    renderSchedule();
+  });
+
+  document.getElementById('addClAvailBtn').addEventListener('click', ()=>{
+    const date = document.getElementById('clAvailDate').value;
+    const start = document.getElementById('clAvailStart').value;
+    const end = document.getElementById('clAvailEnd').value;
+    if(!date || !start || !end || start>=end){ alert('Enter a valid date and time range.'); return; }
+    DATA.clientAvailability.push({ id:uid(), clientId:c.id, date, start, end });
+    persist();
+    renderClientDetail();
+    renderSchedule();
+  });
+  box.querySelectorAll('[data-del-clavail]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      DATA.clientAvailability = DATA.clientAvailability.filter(a=>a.id!==btn.dataset.delClavail);
+      persist();
+      renderClientDetail();
+      renderSchedule();
+    });
+  });
+}
+
+document.getElementById('addClientBtn').addEventListener('click', ()=> openClientModal(null));
+document.getElementById('clientSearch').addEventListener('input', function(){ UI.clientSearch = this.value; renderClientsTab(); });
+
+function openClientModal(id){
+  const c = id ? clientById(id) : null;
+  UI.clientModal.editingId = id;
+  UI.clientModal.type = c ? c.type : 'either';
+  UI.clientModal.excluded = c ? (c.excludedTrainerIds||[]).slice() : [];
+  document.getElementById('clientModalTitle').textContent = c ? 'Edit client' : 'Add client';
+  document.getElementById('clientName').value = c ? c.name : '';
+  document.getElementById('clientNotes').value = c ? (c.notes||'') : '';
+  document.getElementById('clientDelete').style.display = c ? 'inline-block' : 'none';
+  setClientTypeButtons(UI.clientModal.type);
+  renderExcludedTrainerList();
+  document.getElementById('clientOverlay').classList.add('open');
+}
+function renderExcludedTrainerList(){
+  const box = document.getElementById('excludedTrainerList');
+  if(DATA.trainers.length===0){
+    box.innerHTML = `<div class="hint" style="padding:8px;">Add trainers first to set exclusions.</div>`;
+    return;
+  }
+  box.innerHTML = DATA.trainers.map(t=>`
+    <label><input type="checkbox" value="${t.id}" ${UI.clientModal.excluded.includes(t.id)?'checked':''}>
+      <span class="swatch" style="background:${t.color}"></span> ${escapeHtml(t.name)}
+    </label>
+  `).join('');
+  box.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      if(inp.checked){ if(!UI.clientModal.excluded.includes(inp.value)) UI.clientModal.excluded.push(inp.value); }
+      else { UI.clientModal.excluded = UI.clientModal.excluded.filter(id=>id!==inp.value); }
+    });
+  });
+}
+function setClientTypeButtons(type){
+  UI.clientModal.type = type;
+  document.getElementById('ctSolo').classList.toggle('active', type==='solo');
+  document.getElementById('ctDuo').classList.toggle('active', type==='duo');
+  document.getElementById('ctEither').classList.toggle('active', type==='either');
+}
+document.getElementById('ctSolo').addEventListener('click', ()=>setClientTypeButtons('solo'));
+document.getElementById('ctDuo').addEventListener('click', ()=>setClientTypeButtons('duo'));
+document.getElementById('ctEither').addEventListener('click', ()=>setClientTypeButtons('either'));
+document.getElementById('clientClose').addEventListener('click', ()=> document.getElementById('clientOverlay').classList.remove('open'));
+document.getElementById('clientCancel').addEventListener('click', ()=> document.getElementById('clientOverlay').classList.remove('open'));
+document.getElementById('clientSave').addEventListener('click', ()=>{
+  const name = document.getElementById('clientName').value.trim();
+  if(!name){ alert('Enter a name.'); return; }
+  const notes = document.getElementById('clientNotes').value.trim();
+  const excludedTrainerIds = UI.clientModal.excluded.slice();
+  if(UI.clientModal.editingId){
+    const c = clientById(UI.clientModal.editingId);
+    c.name = name; c.type = UI.clientModal.type; c.notes = notes; c.excludedTrainerIds = excludedTrainerIds;
+  } else {
+    const c = { id: uid(), name, type: UI.clientModal.type, notes, excludedTrainerIds };
+    DATA.clients.push(c);
+    UI.selectedClientId = c.id;
+  }
+  persist();
+  document.getElementById('clientOverlay').classList.remove('open');
+  renderClientsTab();
+  renderSchedule();
+});
+document.getElementById('clientDelete').addEventListener('click', ()=>{
+  if(!confirm('Delete this client and their logged availability?')) return;
+  const id = UI.clientModal.editingId;
+  DATA.clients = DATA.clients.filter(c=>c.id!==id);
+  DATA.clientAvailability = DATA.clientAvailability.filter(a=>a.clientId!==id);
+  DATA.sessions.forEach(s=>{ s.clientIds = s.clientIds.filter(cid=>cid!==id); });
+  if(UI.selectedClientId===id) UI.selectedClientId = null;
+  persist();
+  document.getElementById('clientOverlay').classList.remove('open');
+  renderClientsTab();
+  renderSchedule();
+});
+
+/* =======================================================================
+   SCHEDULE TAB
+======================================================================= */
+document.getElementById('prevWeek').addEventListener('click', ()=>{ UI.weekStart = addDays(UI.weekStart, -7); renderSchedule(); });
+document.getElementById('nextWeek').addEventListener('click', ()=>{ UI.weekStart = addDays(UI.weekStart, 7); renderSchedule(); });
+document.getElementById('todayBtn').addEventListener('click', ()=>{ UI.weekStart = startOfWeek(new Date()); renderSchedule(); });
+document.getElementById('modeView').addEventListener('click', ()=>{ UI.editMode=false; syncModeButtons(); renderSchedule(); });
+document.getElementById('modeEdit').addEventListener('click', ()=>{ UI.editMode=true; syncModeButtons(); renderSchedule(); });
+function syncModeButtons(){
+  document.getElementById('modeView').classList.toggle('active', !UI.editMode);
+  document.getElementById('modeEdit').classList.toggle('active', UI.editMode);
+}
+
+function weekDates(){
+  return Array.from({length:7}, (_,i)=> addDays(UI.weekStart, i));
+}
+
+function renderLegend(){
+  const bar = document.getElementById('trainerLegend');
+  if(DATA.trainers.length===0){ bar.innerHTML = '<div class="hint">Add trainers to see their availability here.</div>'; return; }
+  const allVisible = DATA.trainers.every(t=>UI.visibleTrainers.has(t.id));
+  let html = `<button class="btn btn-sm" id="toggleAllTrainersBtn">${allVisible ? 'Hide all colors' : 'Show all in color'}</button>`;
+  html += DATA.trainers.map(t=>{
+    const on = UI.visibleTrainers.has(t.id);
+    const style = on ? `border-color:${t.color}; background:${hexToRgba(t.color,0.14)};` : '';
+    return `<span class="chip ${on?'on':''}" data-id="${t.id}" style="${style}"><span class="swatch" style="background:${t.color}"></span>${escapeHtml(t.name)}</span>`;
+  }).join('');
+  bar.innerHTML = html;
+  document.getElementById('toggleAllTrainersBtn').addEventListener('click', ()=>{
+    if(allVisible){ UI.visibleTrainers.clear(); }
+    else { UI.visibleTrainers = new Set(DATA.trainers.map(t=>t.id)); }
+    renderSchedule();
+  });
+  bar.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const id = chip.dataset.id;
+      if(UI.visibleTrainers.has(id)) UI.visibleTrainers.delete(id); else UI.visibleTrainers.add(id);
+      renderSchedule();
+    });
+  });
+  const hint = document.getElementById('modeHint');
+  if(hint){
+    if(UI.visibleTrainers.size===0){
+      hint.textContent = 'Showing an availability heatmap — darker means more trainers are free. Click a trainer above to see their own schedule in their color.';
+    } else {
+      const names = DATA.trainers.filter(t=>UI.visibleTrainers.has(t.id)).map(t=>t.name);
+      hint.textContent = `Showing color-coded schedule for: ${names.join(', ')}. Click a name above to add or remove it, or "Hide all colors" to go back to the heatmap.`;
+    }
+  }
+}
+
+function renderGridHead(){
+  const head = document.getElementById('gridHead');
+  const dates = weekDates();
+  const todayStr = fmtDate(new Date());
+  head.innerHTML = `<div class="time-gutter"></div>` + dates.map(d=>{
+    const isToday = fmtDate(d)===todayStr;
+    return `<div class="day-head ${isToday?'today':''}"><div class="dname">${WEEKDAYS[(d.getDay()+6)%7]}</div><div class="dnum">${d.getMonth()+1}/${d.getDate()}</div></div>`;
+  }).join('');
+}
+
+function renderGridBody(){
+  const body = document.getElementById('gridBody');
+  const dates = weekDates();
+  const todayStr = fmtDate(new Date());
+
+  const matchClientAId = document.getElementById('matchClientA') ? document.getElementById('matchClientA').value : '';
+  const matchClientBId = document.getElementById('matchClientB') ? document.getElementById('matchClientB').value : '';
+  const excludedByMatchClients = new Set();
+  const excludedNames = [];
+  [matchClientAId, matchClientBId].forEach(cid=>{
+    const cc = clientById(cid);
+    if(cc && (cc.excludedTrainerIds||[]).length){
+      cc.excludedTrainerIds.forEach(tid=>{
+        excludedByMatchClients.add(tid);
+        const tt = trainerById(tid);
+        if(tt) excludedNames.push(`${tt.name} (${cc.name})`);
+      });
+    }
+  });
+  const hintBox = document.getElementById('exclusionHint');
+  if(hintBox) hintBox.textContent = excludedNames.length ? `Hiding availability for: ${excludedNames.join(', ')} — set in each client's profile.` : '';
+
+  const visible = DATA.trainers.filter(t=>UI.visibleTrainers.has(t.id) && !excludedByMatchClients.has(t.id));
+  const heatTrainers = DATA.trainers.filter(t=>!excludedByMatchClients.has(t.id));
+  const focusMode = visible.length > 0;
+  const railWidth = focusMode ? Math.min(96, Math.max(30, visible.length*24)) : 0;
+  const sessionsLeft = focusMode ? railWidth+8 : 6;
+
+  // time gutter
+  let gutterHtml = `<div class="time-gutter-col" style="height:${GRID_HEIGHT}px;">`;
+  for(let m=GRID_START; m<=GRID_END; m+=60){
+    const top = ((m-GRID_START)/SLOT)*ROW_H;
+    gutterHtml += `<div class="tlabel" style="top:${top}px;">${fmtTime12(minToTime(m))}</div>`;
+  }
+  gutterHtml += `</div>`;
+
+  let daysHtml = '';
+  dates.forEach(d=>{
+    const dateStr = fmtDate(d);
+    const isToday = dateStr===todayStr;
+
+    let backHtml = '';
+    if(focusMode){
+      // focused rail: a lane per selected trainer, showing their exact color
+      backHtml += `<div class="rail" style="width:${railWidth}px;">`;
+      visible.forEach(t=>{
+        const {base, off} = trainerRawAvailability(t.id, dateStr);
+        let lane = `<div class="lane" title="${escapeHtml(t.name)}">`;
+        base.forEach(iv=>{
+          const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
+          const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
+          if(h>0) lane += `<div class="seg" style="top:${top}px;height:${h}px;background:${t.color};" title="${escapeHtml(t.name)} available ${fmtTimeRange(minToTime(iv[0]),minToTime(iv[1]))}"></div>`;
+        });
+        off.forEach(iv=>{
+          const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
+          const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
+          if(h>0) lane += `<div class="seg off" style="top:${top}px;height:${h}px;" title="${escapeHtml(t.name)} off"></div>`;
+        });
+        lane += `</div>`;
+        backHtml += lane;
+      });
+      backHtml += `</div>`;
+    } else {
+      // heatmap: density of how many trainers are free, regardless of identity
+      const segs = computeHeatSegments(dateStr, heatTrainers);
+      backHtml += `<div class="heat-layer">`;
+      segs.forEach(seg=>{
+        if(seg.count===0) return;
+        const top = Math.max(0,(seg.start-GRID_START))/SLOT*ROW_H;
+        const h = (Math.min(seg.end,GRID_END)-Math.max(seg.start,GRID_START))/SLOT*ROW_H;
+        if(h<=0) return;
+        const frac = heatTrainers.length ? seg.count/heatTrainers.length : 0;
+        const alpha = (0.10 + frac*0.75).toFixed(2);
+        backHtml += `<div class="heat-seg" style="top:${top}px;height:${h}px;background:rgba(46,110,94,${alpha});" title="${seg.count} free: ${seg.names.map(escapeHtml).join(', ')}">${h>=16?`<span class="cnt">${seg.count}</span>`:''}</div>`;
+      });
+      backHtml += `</div>`;
+    }
+
+    // client highlight overlays (dashed = that client is free)
+    let hlHtml = '';
+    [ [document.getElementById('matchClientA'), ''], [document.getElementById('matchClientB'), 'second'] ].forEach(([sel, cls])=>{
+      if(!sel) return;
+      const cid = sel.value;
+      if(!cid) return;
+      const ivs = clientFreeIntervals(cid, dateStr, {});
+      ivs.forEach(iv=>{
+        const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
+        const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
+        if(h>0) hlHtml += `<div class="client-hl ${cls}" style="top:${top}px;height:${h}px;"></div>`;
+      });
+    });
+
+    // solid overlay = actually bookable: selected client(s) free AND at least one eligible trainer free
+    if(matchClientAId){
+      const clA = clientById(matchClientAId);
+      const clB = matchClientBId ? clientById(matchClientBId) : null;
+      const validPair = clA && !(clB && (clA.type==='solo' || clB.type==='solo'));
+      if(validPair){
+        let clientOverlap = clientFreeIntervals(matchClientAId, dateStr);
+        if(clB) clientOverlap = intersectIntervals(clientOverlap, clientFreeIntervals(matchClientBId, dateStr));
+        let trainerUnion = [];
+        heatTrainers.forEach(t=>{ trainerUnion = mergeIntervals(trainerUnion.concat(trainerFreeIntervals(t.id, dateStr))); });
+        const bookable = intersectIntervals(clientOverlap, trainerUnion).filter(iv=>iv[1]-iv[0]>=30);
+        bookable.forEach(iv=>{
+          const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
+          const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
+          if(h>0) hlHtml += `<div class="match-hl" style="top:${top}px;height:${h}px;" title="Bookable ${fmtTimeRange(minToTime(iv[0]),minToTime(iv[1]))}">${h>=16?'<span class="lbl">Bookable</span>':''}</div>`;
+        });
+      }
+    }
+
+    // session blocks with overlap-column layout
+    const sessions = DATA.sessions.filter(s=>s.date===dateStr).sort((a,b)=>timeToMin(a.start)-timeToMin(b.start));
+    const cols = layoutColumns(sessions);
+    let sessHtml = '';
+    sessions.forEach(s=>{
+      const trainer = trainerById(s.trainerId);
+      const color = trainer ? trainer.color : '#7A8577';
+      const top = Math.max(0,(timeToMin(s.start)-GRID_START))/SLOT*ROW_H;
+      const h = Math.max(18,(timeToMin(s.end)-timeToMin(s.start))/SLOT*ROW_H);
+      const {col, of} = cols.get(s.id);
+      const widthPct = 100/of;
+      const leftPct = widthPct*col;
+      const names = s.clientIds.map(cid=>{ const cc = clientById(cid); return cc ? cc.name : '—'; }).join(' & ');
+      sessHtml += `<div class="sess-block ${s.status==='draft'?'draft':''}" data-id="${s.id}"
+        style="top:${top}px;height:${h}px;left:calc(${leftPct}% + 1px);width:calc(${widthPct}% - 3px);background:${color};">
+        <span class="st">${s.status==='confirmed'?'✓ Confirmed':'Draft'} · ${trainer?escapeHtml(trainer.name):'Unassigned'}</span>
+        <span class="nm">${escapeHtml(names||'No client set')}</span>
+      </div>`;
+    });
+
+    daysHtml += `<div class="day-col ${isToday?'today':''}" style="height:${GRID_HEIGHT}px;" data-date="${dateStr}">
+      ${backHtml}
+      <div class="sessions-area ${UI.editMode?'editable':''}" style="left:${sessionsLeft}px;" data-date="${dateStr}">${hlHtml}${sessHtml}</div>
+    </div>`;
+  });
+
+  body.innerHTML = gutterHtml + daysHtml;
+
+  // click to create
+  if(UI.editMode){
+    body.querySelectorAll('.sessions-area').forEach(area=>{
+      area.addEventListener('click', (e)=>{
+        if(e.target.closest('.sess-block')) return;
+        const rect = area.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        let startMin = GRID_START + Math.round((y/ROW_H))*SLOT;
+        startMin = Math.min(startMin, GRID_END-60);
+        openSessionModal(null, area.dataset.date, minToTime(startMin));
+      });
+    });
+  }
+  body.querySelectorAll('.sess-block').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openSessionModal(el.dataset.id);
+    });
+  });
+}
+
+// Simple greedy overlap-column assignment so concurrent sessions sit side by side.
+function layoutColumns(sessions){
+  const map = new Map();
+  const active = []; // {end, col}
+  let maxCols = 1;
+  const groups = [];
+  let currentGroup = [];
+  let groupEnd = -Infinity;
+
+  sessions.forEach(s=>{
+    const st = timeToMin(s.start), en = timeToMin(s.end);
+    if(st >= groupEnd && currentGroup.length){
+      groups.push(currentGroup);
+      currentGroup = [];
+      groupEnd = -Infinity;
+    }
+    currentGroup.push(s);
+    groupEnd = Math.max(groupEnd, en);
+  });
+  if(currentGroup.length) groups.push(currentGroup);
+
+  groups.forEach(group=>{
+    const colsEnd = [];
+    group.forEach(s=>{
+      const st = timeToMin(s.start), en = timeToMin(s.end);
+      let placed = false;
+      for(let i=0;i<colsEnd.length;i++){
+        if(colsEnd[i] <= st){ colsEnd[i] = en; map.set(s.id, {col:i}); placed = true; break; }
+      }
+      if(!placed){ colsEnd.push(en); map.set(s.id, {col:colsEnd.length-1}); }
+    });
+    const of = colsEnd.length;
+    group.forEach(s=>{ map.get(s.id).of = of; });
+  });
+  return map;
+}
+
+function renderWeekLabel(){
+  const dates = weekDates();
+  document.getElementById('wkLabel').textContent = fmtNiceDate(dates[0]).replace(/^[A-Za-z]+, /,'') + ' – ' + fmtNiceDate(dates[6]).replace(/^[A-Za-z]+, /,'');
+}
+
+/* ---- Match finder ---- */
+function renderMatchFinder(){
+  const selA = document.getElementById('matchClientA');
+  const selB = document.getElementById('matchClientB');
+  const prevA = selA.value, prevB = selB.value;
+  selA.innerHTML = DATA.clients.length ? DATA.clients.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('') : '<option value="">Add a client first</option>';
+  if(prevA) selA.value = prevA;
+  const aId = selA.value;
+  selB.innerHTML = '<option value="">— none —</option>' + DATA.clients.filter(c=>c.id!==aId).map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  if(prevB && prevB!==aId) selB.value = prevB;
+  computeMatches();
+}
+document.getElementById('matchClientA').addEventListener('change', ()=>{ renderMatchFinder(); renderGridBody(); });
+document.getElementById('matchClientB').addEventListener('change', ()=>{ computeMatches(); renderGridBody(); });
+
+function computeMatches(){
+  const results = document.getElementById('matchResults');
+  const aId = document.getElementById('matchClientA').value;
+  const bId = document.getElementById('matchClientB').value;
+  if(!aId){ results.innerHTML = '<div class="hint">Choose a client to see matching windows.</div>'; return; }
+  const clientA = clientById(aId);
+  const clientB = bId ? clientById(bId) : null;
+  if(clientB && clientA.type==='solo'){ results.innerHTML = '<div class="hint">This client is 1-on-1 only — remove client B.</div>'; return; }
+  if(clientB && clientB.type==='solo'){ results.innerHTML = '<div class="hint">Client B is 1-on-1 only — cannot pair for a 1-on-2.</div>'; return; }
+
+  const excludedSet = new Set([...(clientA.excludedTrainerIds||[]), ...(clientB?(clientB.excludedTrainerIds||[]):[])]);
+  const dates = weekDates();
+  const weekDateSet = new Set(dates.map(fmtDate));
+  const eligibleTrainers = DATA.trainers.filter(t=>!excludedSet.has(t.id)).slice().sort((a,b)=>{
+    const empA = (a.employmentType||'full')==='full' ? 0 : 1;
+    const empB = (b.employmentType||'full')==='full' ? 0 : 1;
+    if(empA!==empB) return empA-empB;
+    const deficitA = trainerTargetHours(a) - trainerWeekHours(a.id, weekDateSet);
+    const deficitB = trainerTargetHours(b) - trainerWeekHours(b.id, weekDateSet);
+    return deficitB - deficitA;
+  });
+
+  let anyFound = false;
+  let html = '';
+  dates.forEach(d=>{
+    const dateStr = fmtDate(d);
+    let clientOverlap = clientFreeIntervals(aId, dateStr);
+    if(clientB) clientOverlap = intersectIntervals(clientOverlap, clientFreeIntervals(bId, dateStr));
+    if(clientOverlap.length===0) return;
+
+    eligibleTrainers.forEach(t=>{
+      const free = trainerFreeIntervals(t.id, dateStr);
+      const overlap = intersectIntervals(clientOverlap, free).filter(iv=>iv[1]-iv[0] >= 30);
+      const emp = t.employmentType||'full';
+      const hrs = trainerWeekHours(t.id, weekDateSet);
+      const target = trainerTargetHours(t);
+      overlap.forEach(iv=>{
+        anyFound = true;
+        html += `<div class="match-slot">
+          <div class="when">${fmtNiceDate(d)} · ${fmtTimeRange(minToTime(iv[0]), minToTime(iv[1]))}</div>
+          <div class="trainers"><span class="swatch" style="background:${t.color}; display:inline-block;"></span> ${escapeHtml(t.name)} <span class="badge ${emp}" style="margin-left:4px;">${emp==='full'?'Full-time':'Part-time'}</span> · ${hrs.toFixed(1)}/${target}h this week</div>
+          <button class="btn btn-sm btn-primary" data-book='${JSON.stringify({date:dateStr, start:minToTime(iv[0]), trainerId:t.id, clientIds:clientB?[aId,bId]:[aId], type:clientB?'duo':'solo'})}'>Book this slot</button>
+        </div>`;
+      });
+    });
+  });
+  let excludedNote = excludedSet.size ? `<div class="hint" style="margin-bottom:8px;">Skipping ${excludedSet.size} trainer${excludedSet.size===1?'':'s'} excluded for ${clientB?'these clients':'this client'}.</div>` : '';
+
+  if(!anyFound){
+    // Diagnose *why* nothing was found so this isn't a dead end.
+    const clientHasAvail = DATA.clientAvailability.some(a=>(a.clientId===aId || (bId && a.clientId===bId)) && weekDateSet.has(a.date));
+    const anyTrainerHasAvail = eligibleTrainers.some(t=> DATA.trainerAvailability.some(a=>a.trainerId===t.id && weekDateSet.has(a.date) && a.type==='available'));
+    let why;
+    if(!clientHasAvail){
+      why = `${clientB ? 'Neither client has' : escapeHtml(clientA.name)+' has no'} availability logged for this week yet — add it on the Clients tab, or check that you're viewing the right week.`;
+    } else if(!anyTrainerHasAvail){
+      why = `No trainers have availability entered for this week — add it on the Trainers tab, or check that you're viewing the right week.`;
+    } else if(eligibleTrainers.length===0){
+      why = `Every trainer is excluded for ${clientB?'these clients':'this client'}.`;
+    } else {
+      why = `The times don't overlap this week — try another week, or widen the client's or a trainer's availability.`;
+    }
+    results.innerHTML = excludedNote + `<div class="hint">${why}</div>`;
+  } else {
+    results.innerHTML = excludedNote + html;
+  }
+  results.querySelectorAll('[data-book]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const info = JSON.parse(btn.dataset.book);
+      openSessionModal(null, info.date, info.start, info);
+    });
+  });
+}
+
+function renderHoursPanel(){
+  const box = document.getElementById('hoursPanel');
+  if(!box) return;
+  if(DATA.trainers.length===0){ box.innerHTML = '<div class="hint">Add trainers to see hours here.</div>'; return; }
+  const dates = weekDates();
+  const weekDateSet = new Set(dates.map(fmtDate));
+  const rows = DATA.trainers.map(t=>{
+    const hours = trainerWeekHours(t.id, weekDateSet);
+    const target = trainerTargetHours(t);
+    const emp = t.employmentType||'full';
+    return { t, hours, target, emp, deficit: target-hours };
+  }).sort((a,b)=>{
+    const ea = a.emp==='full'?0:1, eb = b.emp==='full'?0:1;
+    if(ea!==eb) return ea-eb;
+    return b.deficit - a.deficit;
+  });
+  box.innerHTML = rows.map(r=>{
+    const pct = r.target>0 ? Math.min(100, (r.hours/r.target)*100) : 100;
+    const short = r.hours < r.target - 0.01;
+    const barColor = short ? (r.emp==='full' ? 'var(--danger)' : 'var(--draft)') : 'var(--confirm)';
+    return `<div style="margin-bottom:11px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:3px; gap:6px;">
+        <span style="font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span class="swatch" style="background:${r.t.color}; display:inline-block; margin-right:5px;"></span>${escapeHtml(r.t.name)}</span>
+        <span style="color:var(--ink-muted); flex:0 0 auto;">${r.hours.toFixed(1)}h / ${r.target}h</span>
+      </div>
+      <div style="height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden;">
+        <div style="height:100%; width:${pct}%; background:${barColor};"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSchedule(){
+  renderWeekLabel();
+  renderLegend();
+  renderGridHead();
+  renderMatchFinder();
+  renderGridBody();
+  renderHoursPanel();
+  syncModeButtons();
+}
+
+/* ---- Session modal ---- */
+function openSessionModal(sessionId, date, start, prefill){
+  const existing = sessionId ? DATA.sessions.find(s=>s.id===sessionId) : null;
+  UI.sessionModal.editingId = sessionId || null;
+  UI.sessionModal.status = existing ? existing.status : 'draft';
+  UI.sessionModal.type = existing ? (existing.clientIds.length>1?'duo':'solo') : (prefill?prefill.type:'solo');
+  UI.sessionModal.trainerId = existing ? existing.trainerId : (prefill?prefill.trainerId:(DATA.trainers[0]?DATA.trainers[0].id:null));
+  UI.sessionModal.clientIds = existing ? existing.clientIds.slice() : (prefill?prefill.clientIds.slice():[]);
+
+  document.getElementById('sessionModalTitle').textContent = existing ? 'Edit session' : 'New session';
+  document.getElementById('sessDate').value = existing ? existing.date : (date || fmtDate(new Date()));
+  document.getElementById('sessStart').value = existing ? existing.start : (start || '09:00');
+  document.getElementById('sessEnd').value = existing ? existing.end : minToTime(timeToMin(start||'09:00')+60);
+  document.getElementById('sessDelete').style.display = existing ? 'inline-block' : 'none';
+
+  renderTrainerSelect();
+
+  syncStatusButtons();
+  syncTypeButtons();
+  renderClientPickList();
+  document.getElementById('sessionOverlay').classList.add('open');
+}
+function renderTrainerSelect(){
+  const trainerSel = document.getElementById('sessTrainer');
+  const hint = document.getElementById('sessTrainerHint');
+  const excluded = new Set();
+  const excludedByNames = [];
+  UI.sessionModal.clientIds.forEach(cid=>{
+    const cc = clientById(cid);
+    if(cc) (cc.excludedTrainerIds||[]).forEach(tid=>{
+      excluded.add(tid);
+      const tt = trainerById(tid);
+      if(tt) excludedByNames.push(`${tt.name} (${cc.name})`);
+    });
+  });
+  const eligible = DATA.trainers.filter(t=>!excluded.has(t.id));
+  const prev = UI.sessionModal.trainerId;
+  if(eligible.length===0){
+    trainerSel.innerHTML = DATA.trainers.length ? '<option value="">No eligible trainers for these clients</option>' : '<option value="">Add a trainer first</option>';
+    hint.style.display = excludedByNames.length ? 'block' : 'none';
+    hint.textContent = excludedByNames.length ? `Hidden — excluded: ${excludedByNames.join(', ')}` : '';
+    UI.sessionModal.trainerId = null;
+    return;
+  }
+  trainerSel.innerHTML = eligible.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  if(prev && eligible.some(t=>t.id===prev)){
+    trainerSel.value = prev;
+    hint.style.display = 'none';
+  } else {
+    trainerSel.value = eligible[0].id;
+    UI.sessionModal.trainerId = eligible[0].id;
+    if(prev && excluded.has(prev)){
+      hint.style.display = 'block';
+      hint.textContent = `Switched trainers — the previous pick isn't available for this client.`;
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+}
+function syncStatusButtons(){
+  document.getElementById('segDraft').classList.toggle('active', UI.sessionModal.status==='draft');
+  document.getElementById('segConfirmed').classList.toggle('active', UI.sessionModal.status==='confirmed');
+}
+function syncTypeButtons(){
+  document.getElementById('segSolo').classList.toggle('active', UI.sessionModal.type==='solo');
+  document.getElementById('segDuo').classList.toggle('active', UI.sessionModal.type==='duo');
+}
+document.getElementById('segDraft').addEventListener('click', ()=>{ UI.sessionModal.status='draft'; syncStatusButtons(); });
+document.getElementById('segConfirmed').addEventListener('click', ()=>{ UI.sessionModal.status='confirmed'; syncStatusButtons(); });
+document.getElementById('segSolo').addEventListener('click', ()=>{
+  UI.sessionModal.type='solo';
+  if(UI.sessionModal.clientIds.length>1) UI.sessionModal.clientIds = UI.sessionModal.clientIds.slice(0,1);
+  syncTypeButtons(); renderClientPickList();
+});
+document.getElementById('sessTrainer').addEventListener('change', function(){ UI.sessionModal.trainerId = this.value; document.getElementById('sessTrainerHint').style.display='none'; });
+document.getElementById('segDuo').addEventListener('click', ()=>{ UI.sessionModal.type='duo'; syncTypeButtons(); renderClientPickList(); });
+
+function renderClientPickList(){
+  const box = document.getElementById('clientPickList');
+  document.getElementById('clientPickLabel').textContent = UI.sessionModal.type==='duo' ? 'Clients (choose up to 2)' : 'Client';
+  const eligible = DATA.clients.filter(c => UI.sessionModal.type==='duo' ? c.type!=='solo' : c.type!=='duo');
+  if(eligible.length===0){
+    box.innerHTML = `<div class="hint" style="padding:8px;">No eligible clients for this session type yet.</div>`;
+    return;
+  }
+  box.innerHTML = eligible.map(c=>`
+    <label><input type="${UI.sessionModal.type==='duo'?'checkbox':'radio'}" name="clientPick" value="${c.id}" ${UI.sessionModal.clientIds.includes(c.id)?'checked':''}> ${escapeHtml(c.name)} <span class="badge ${c.type}" style="margin-left:auto;">${typeLabel(c.type)}</span></label>
+  `).join('');
+  box.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      if(UI.sessionModal.type==='duo'){
+        const checked = Array.from(box.querySelectorAll('input:checked')).map(i=>i.value);
+        if(checked.length>2){ inp.checked=false; alert('A 1-on-2 session can only have 2 clients.'); return; }
+        UI.sessionModal.clientIds = checked;
+      } else {
+        UI.sessionModal.clientIds = [inp.value];
+      }
+      renderTrainerSelect();
+    });
+  });
+}
+
+document.getElementById('sessionClose').addEventListener('click', closeSessionModal);
+document.getElementById('sessCancel').addEventListener('click', closeSessionModal);
+function closeSessionModal(){ document.getElementById('sessionOverlay').classList.remove('open'); }
+
+document.getElementById('sessSave').addEventListener('click', ()=>{
+  const date = document.getElementById('sessDate').value;
+  const start = document.getElementById('sessStart').value;
+  const end = document.getElementById('sessEnd').value;
+  const trainerId = document.getElementById('sessTrainer').value;
+  if(!date || !start || !end || start>=end){ alert('Enter a valid date and time range.'); return; }
+  if(!trainerId){ alert('Choose a trainer.'); return; }
+  if(UI.sessionModal.clientIds.length===0){ alert('Choose at least one client.'); return; }
+  if(UI.sessionModal.type==='duo' && UI.sessionModal.clientIds.length!==2){ alert('A 1-on-2 session needs exactly 2 clients.'); return; }
+
+  if(UI.sessionModal.editingId){
+    const s = DATA.sessions.find(x=>x.id===UI.sessionModal.editingId);
+    Object.assign(s, { date, start, end, trainerId, clientIds: UI.sessionModal.clientIds.slice(), status: UI.sessionModal.status });
+  } else {
+    DATA.sessions.push({ id: uid(), date, start, end, trainerId, clientIds: UI.sessionModal.clientIds.slice(), status: UI.sessionModal.status });
+  }
+  persist();
+  closeSessionModal();
+  renderSchedule();
+});
+document.getElementById('sessDelete').addEventListener('click', ()=>{
+  if(!confirm('Delete this session?')) return;
+  DATA.sessions = DATA.sessions.filter(s=>s.id!==UI.sessionModal.editingId);
+  persist();
+  closeSessionModal();
+  renderSchedule();
+});
+
+/* =======================================================================
+   INIT
+======================================================================= */
+function renderAll(){
+  if(UI.tab==='trainers') renderTrainersTab();
+  if(UI.tab==='clients') renderClientsTab();
+  if(UI.tab==='schedule') renderSchedule();
+}
+
+UI.visibleTrainers = new Set();
+if(DATA.trainers.length) UI.selectedTrainerId = DATA.trainers[0].id;
+if(DATA.clients.length) UI.selectedClientId = DATA.clients[0].id;
+renderAll();
+
+})();
+</script>
+</body>
+</html>
