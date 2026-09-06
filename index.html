@@ -198,9 +198,18 @@
   .rail .seg.off{background:repeating-linear-gradient(45deg, #E3E6E0, #E3E6E0 3px, #F3F4F1 3px, #F3F4F1 6px);}
   .sessions-area{position:absolute; left:66px; right:3px; top:0; bottom:0;}
   .sessions-area.editable{cursor:copy;}
+  .sessions-area.avail-editing{cursor:crosshair;}
   .client-hl{position:absolute; left:0; right:0; border:1.5px dashed var(--accent); background:rgba(46,110,94,0.08); border-radius:5px; pointer-events:none;}
   .client-hl.second{border-color:#39508F; background:rgba(57,80,143,0.08);}
   .client-avail-box{position:absolute; left:1px; right:1px; border-radius:4px; pointer-events:auto; border-left-width:4px; border-left-style:solid; border-top:1px solid rgba(0,0,0,0.06); border-bottom:1px solid rgba(0,0,0,0.06); border-right:1px solid rgba(0,0,0,0.06);}
+  .client-avail-box.spotlight{z-index:3; border-width:1.5px; border-left-width:6px; box-shadow:0 3px 10px rgba(0,0,0,0.22);}
+  .client-avail-box.editable-avail{z-index:4;}
+  .avail-resize-handle{position:absolute; left:0; right:0; height:9px; cursor:ns-resize; z-index:5;}
+  .avail-resize-handle.top{top:-3px;}
+  .avail-resize-handle.bottom{bottom:-3px;}
+  .avail-resize-handle::after{content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:26px; height:4px; border-radius:3px; background:rgba(0,0,0,0.28);}
+  .avail-delete-x{position:absolute; top:2px; right:2px; width:16px; height:16px; line-height:14px; text-align:center; padding:0; border-radius:50%; background:rgba(0,0,0,0.35); color:#fff; border:none; font-size:12px; font-weight:700; cursor:pointer; z-index:5;}
+  .avail-delete-x:hover{background:var(--danger);}
   .client-avail-box .cname{position:absolute; top:2px; left:6px; font-size:9.5px; font-weight:800; background:rgba(255,255,255,0.88); padding:0 4px; border-radius:3px; white-space:nowrap; max-width:calc(100% - 12px); overflow:hidden; text-overflow:ellipsis;}
   .sess-block{position:absolute; border-radius:6px; padding:4px 6px; overflow:hidden; color:#fff; font-size:11px; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.18); border:1px solid rgba(0,0,0,0.08);}
   .sess-block:hover{filter:brightness(1.06);}
@@ -345,6 +354,7 @@
       </div>
 
       <div id="exclusionHint" class="hint" style="margin:-4px 0 12px;"></div>
+      <div id="availEditHint" class="hint" style="display:none; margin:-4px 0 12px; font-weight:700; color:var(--accent-dark);"></div>
 
       <div class="sched-layout">
         <div class="grid-wrap">
@@ -578,6 +588,23 @@
       <div style="flex:1"></div>
       <button class="btn" id="clientCancel">Cancel</button>
       <button class="btn btn-primary" id="clientSave">Save client</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic confirm dialog, used for editing/deleting availability on the calendar -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head">
+      <h3 id="confirmTitle">Confirm</h3>
+      <button id="confirmClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="confirmMessage" style="font-size:14px; color:var(--ink); line-height:1.5;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="confirmNo">Cancel</button>
+      <button class="btn btn-primary" id="confirmYes">Confirm</button>
     </div>
   </div>
 </div>
@@ -826,6 +853,8 @@ const UI = {
   showBookedSessions: true,
   visibleTrainers: new Set(), // filled after load
   visibleClients: new Set(),
+  highlightedClients: new Set(),
+  availEditClientId: null,
   clientTypeOn: { solo:false, duo:false, either:false },
   trainerDropdownOpen: false,
   trainerAvailTab: 'available',
@@ -989,6 +1018,29 @@ function clientAvailBoxTooltip(client, weekDateSet){
   return text;
 }
 
+/* ---- Generic confirm dialog (used for editing/deleting availability blocks) ---- */
+let confirmYesCb = null, confirmNoCb = null;
+function showConfirm(title, message, onYes, onNo){
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  confirmYesCb = onYes || null;
+  confirmNoCb = onNo || null;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm(runNo){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if(runNo && confirmNoCb) confirmNoCb();
+  confirmYesCb = null; confirmNoCb = null;
+}
+document.getElementById('confirmYes').addEventListener('click', ()=>{
+  document.getElementById('confirmOverlay').classList.remove('open');
+  const cb = confirmYesCb;
+  confirmYesCb = null; confirmNoCb = null;
+  if(cb) cb();
+});
+document.getElementById('confirmNo').addEventListener('click', ()=> closeConfirm(true));
+document.getElementById('confirmClose').addEventListener('click', ()=> closeConfirm(true));
+
 /* ---------------------------------------------------------------------
    TAB SWITCHING
 --------------------------------------------------------------------- */
@@ -1028,6 +1080,7 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
       persist();
       UI.visibleTrainers = new Set();
       UI.visibleClients = new Set();
+      UI.highlightedClients = new Set();
       UI.clientTypeOn = { solo:false, duo:false, either:false };
       renderAll();
     }catch(err){
@@ -2064,6 +2117,17 @@ function renderGridBody(){
   const weekDateSet = new Set(dates.map(fmtDate));
   const todayStr = fmtDate(new Date());
 
+  const editHint = document.getElementById('availEditHint');
+  if(editHint){
+    const editClient = UI.availEditClientId ? clientById(UI.availEditClientId) : null;
+    if(editClient){
+      editHint.style.display = 'block';
+      editHint.textContent = `Editing ${editClient.name}'s availability — drag on the calendar to add a block, drag an edge of an existing one to resize it, or click × to remove it. Click "Add availability" again to stop.`;
+    } else {
+      editHint.style.display = 'none';
+    }
+  }
+
   const matchClientAId = document.getElementById('matchClientA') ? document.getElementById('matchClientA').value : '';
   const matchClientBId = document.getElementById('matchClientB') ? document.getElementById('matchClientB').value : '';
   const excludedByMatchClients = new Set();
@@ -2118,13 +2182,18 @@ function renderGridBody(){
     });
     backHtml += `</div>`;
 
-    // client availability overlays — any client toggled on in the client legend,
-    // laid out side-by-side (like Google Calendar) when their windows overlap.
+    // client availability overlays. Clients toggled on via the sidebar are
+    // laid out side-by-side (like Google Calendar) when their windows
+    // overlap. Clients spotlighted via the checkbox in "This week's client
+    // sessions" always render as a full-width block on top of that, no
+    // matter how many others are squished in the background — clicking a
+    // name there should look the same whether "Show all" is on or off.
     let hlHtml = '';
-    const visibleClientObjs = DATA.clients.filter(c=>UI.visibleClients.has(c.id));
-    if(visibleClientObjs.length){
+    const squishClientObjs = DATA.clients.filter(c=>UI.visibleClients.has(c.id) && !UI.highlightedClients.has(c.id));
+    const spotlightClientObjs = DATA.clients.filter(c=>UI.highlightedClients.has(c.id));
+    if(squishClientObjs.length){
       const items = [];
-      visibleClientObjs.forEach(c=>{
+      squishClientObjs.forEach(c=>{
         const ivs = clientFreeIntervals(c.id, dateStr, {});
         ivs.forEach((iv,idx)=>{ items.push({ id:`${c.id}-${idx}`, start:iv[0], end:iv[1], client:c }); });
       });
@@ -2140,6 +2209,45 @@ function renderGridBody(){
         const color = clientColor(it.client);
         hlHtml += `<div class="client-avail-box" data-client-id="${it.client.id}" style="top:${top}px;height:${h}px;left:calc(${leftPct}% + 1px);width:calc(${widthPct}% - 3px);border-left-color:${color}; background:${hexToRgba(color,0.14)};" title="${escapeHtml(clientAvailBoxTooltip(it.client, weekDateSet))}">${h>=16?`<span class="cname" style="color:${color};">${escapeHtml(it.client.name)}</span>`:''}</div>`;
       });
+    }
+    if(spotlightClientObjs.length){
+      const editTarget = (UI.availEditClientId && spotlightClientObjs.length===1 && spotlightClientObjs[0].id===UI.availEditClientId) ? spotlightClientObjs[0] : null;
+      if(editTarget){
+        // Edit mode: show the client's RAW logged entries (not the computed,
+        // booking-aware view) so every box maps 1:1 to something editable.
+        const color = clientColor(editTarget);
+        const entries = DATA.clientAvailability.filter(a=>a.clientId===editTarget.id && a.date===dateStr);
+        entries.forEach(a=>{
+          const s = timeToMin(a.start), e = timeToMin(a.end);
+          const top = Math.max(0,(s-GRID_START))/SLOT*ROW_H;
+          const h = (Math.min(e,GRID_END)-Math.max(s,GRID_START))/SLOT*ROW_H;
+          if(h<=0) return;
+          hlHtml += `<div class="client-avail-box spotlight editable-avail" data-avail-id="${a.id}" style="top:${top}px;height:${h}px;left:1px;width:calc(100% - 3px);border-left-color:${color}; background:${hexToRgba(color,0.32)};" title="${escapeHtml(editTarget.name)} ${fmtTimeRange(a.start,a.end)} — drag an edge to resize, × to remove">
+            <div class="avail-resize-handle top" data-avail-id="${a.id}"></div>
+            <div class="avail-resize-handle bottom" data-avail-id="${a.id}"></div>
+            <button type="button" class="avail-delete-x" data-avail-id="${a.id}" title="Remove this availability">×</button>
+            ${h>=16?`<span class="cname" style="color:${color};">${escapeHtml(editTarget.name)}</span>`:''}
+          </div>`;
+        });
+      } else {
+        const items = [];
+        spotlightClientObjs.forEach(c=>{
+          const ivs = clientFreeIntervals(c.id, dateStr, {});
+          ivs.forEach((iv,idx)=>{ items.push({ id:`${c.id}-${idx}`, start:iv[0], end:iv[1], client:c }); });
+        });
+        items.sort((a,b)=> a.start-b.start);
+        const cols = layoutColumnsGeneric(items);
+        items.forEach(it=>{
+          const top = Math.max(0,(it.start-GRID_START))/SLOT*ROW_H;
+          const h = (Math.min(it.end,GRID_END)-Math.max(it.start,GRID_START))/SLOT*ROW_H;
+          if(h<=0) return;
+          const { col, of } = cols.get(it.id);
+          const widthPct = 100/of;
+          const leftPct = widthPct*col;
+          const color = clientColor(it.client);
+          hlHtml += `<div class="client-avail-box spotlight" data-client-id="${it.client.id}" style="top:${top}px;height:${h}px;left:calc(${leftPct}% + 1px);width:calc(${widthPct}% - 3px);border-left-color:${color}; background:${hexToRgba(color,0.32)};" title="${escapeHtml(clientAvailBoxTooltip(it.client, weekDateSet))}">${h>=16?`<span class="cname" style="color:${color};">${escapeHtml(it.client.name)}</span>`:''}</div>`;
+        });
+      }
     }
 
     // session blocks with overlap-column layout (same squish algorithm as
@@ -2168,7 +2276,7 @@ function renderGridBody(){
 
     daysHtml += `<div class="day-col ${isToday?'today':''}" style="height:${GRID_HEIGHT}px;" data-date="${dateStr}">
       ${backHtml}
-      <div class="sessions-area ${UI.editMode?'editable':''}" style="left:${sessionsLeft}px;" data-date="${dateStr}">${hlHtml}${sessHtml}</div>
+      <div class="sessions-area ${UI.editMode?'editable':''} ${UI.availEditClientId?'avail-editing':''}" style="left:${sessionsLeft}px;" data-date="${dateStr}">${hlHtml}${sessHtml}</div>
     </div>`;
   });
 
@@ -2180,7 +2288,13 @@ function renderGridBody(){
     const clB = matchClientBId ? clientById(matchClientBId) : null;
     const clickDuration = clA ? (clB ? Math.max(clientSessionLength(clA), clientSessionLength(clB)) : clientSessionLength(clA)) : 60;
     body.querySelectorAll('.sessions-area').forEach(area=>{
+      area.addEventListener('mousedown', (e)=>{
+        if(!UI.availEditClientId) return;
+        if(e.target.closest('.client-avail-box') || e.target.closest('.avail-resize-handle') || e.target.closest('.avail-delete-x')) return;
+        startAvailAddDrag(e, area);
+      });
       area.addEventListener('click', (e)=>{
+        if(UI.availEditClientId) return;
         if(e.target.closest('.sess-block')) return;
         const rect = area.getBoundingClientRect();
         const y = e.clientY - rect.top;
@@ -2217,6 +2331,24 @@ function renderGridBody(){
       });
     });
   }
+  body.querySelectorAll('.avail-resize-handle').forEach(handle=>{
+    handle.addEventListener('mousedown', (e)=>{
+      e.stopPropagation();
+      e.preventDefault();
+      startAvailResizeDrag(handle);
+    });
+  });
+  body.querySelectorAll('.avail-delete-x').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const availId = btn.dataset.availId;
+      showConfirm('Remove availability', 'Are you sure you want to cancel this availability time?', ()=>{
+        DATA.clientAvailability = DATA.clientAvailability.filter(a=>a.id!==availId);
+        persist();
+        renderSchedule();
+      });
+    });
+  });
   body.querySelectorAll('.sess-block').forEach(el=>{
     el.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -2224,6 +2356,99 @@ function renderGridBody(){
     });
   });
 }
+
+/* ---- Add/edit a client's availability directly on the main schedule grid.
+   Only active while UI.availEditClientId is set (exactly one client checked
+   in "This week's client sessions" + their "Add availability" button on). ---- */
+let availAddDrag = null;   // {area, date, startMin, box}
+let availResizeDrag = null; // {availId, edge, origStart, origEnd, boxEl, pendingStart, pendingEnd}
+
+function startAvailAddDrag(e, area){
+  const rect = area.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  let startMin = GRID_START + Math.round(y/ROW_H)*SLOT;
+  startMin = Math.min(startMin, GRID_END-SLOT);
+  const box = document.createElement('div');
+  box.className = 'avail-drag-box';
+  box.style.top = ((startMin-GRID_START)/SLOT*ROW_H)+'px';
+  box.style.height = ROW_H+'px';
+  area.appendChild(box);
+  availAddDrag = { area, date: area.dataset.date, startMin, box };
+  e.preventDefault();
+}
+function startAvailResizeDrag(handle){
+  const availId = handle.dataset.availId;
+  const entry = DATA.clientAvailability.find(a=>a.id===availId);
+  if(!entry) return;
+  const edge = handle.classList.contains('top') ? 'start' : 'end';
+  availResizeDrag = {
+    availId, edge, date: entry.date,
+    origStart: entry.start, origEnd: entry.end,
+    boxEl: handle.closest('.client-avail-box'),
+    pendingStart: null, pendingEnd: null
+  };
+}
+document.addEventListener('mousemove', (e)=>{
+  if(availAddDrag){
+    const { area, startMin, box } = availAddDrag;
+    const rect = area.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    let curMin = GRID_START + Math.round(y/ROW_H)*SLOT;
+    curMin = Math.max(GRID_START+SLOT, Math.min(curMin, GRID_END));
+    const s = Math.min(startMin, curMin-SLOT);
+    const en = Math.max(startMin+SLOT, curMin);
+    box.style.top = ((s-GRID_START)/SLOT*ROW_H)+'px';
+    box.style.height = ((en-s)/SLOT*ROW_H)+'px';
+    box.dataset.start = s;
+    box.dataset.end = en;
+  } else if(availResizeDrag){
+    const rd = availResizeDrag;
+    const dayCol = rd.boxEl.closest('.sessions-area');
+    if(!dayCol) return;
+    const rect = dayCol.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    let curMin = GRID_START + Math.round(y/ROW_H)*SLOT;
+    const origStartMin = timeToMin(rd.origStart);
+    const origEndMin = timeToMin(rd.origEnd);
+    let newStart = origStartMin, newEnd = origEndMin;
+    if(rd.edge==='start'){
+      newStart = Math.max(GRID_START, Math.min(curMin, origEndMin-SLOT));
+    } else {
+      newEnd = Math.min(GRID_END, Math.max(curMin, origStartMin+SLOT));
+    }
+    rd.pendingStart = newStart; rd.pendingEnd = newEnd;
+    rd.boxEl.style.top = ((newStart-GRID_START)/SLOT*ROW_H)+'px';
+    rd.boxEl.style.height = ((newEnd-newStart)/SLOT*ROW_H)+'px';
+  }
+});
+document.addEventListener('mouseup', ()=>{
+  if(availAddDrag){
+    const { date, box, area } = availAddDrag;
+    availAddDrag = null;
+    const s = Number(box.dataset.start != null ? box.dataset.start : 0);
+    const en = Number(box.dataset.end != null ? box.dataset.end : 0);
+    const clientId = UI.availEditClientId;
+    if(clientId && en>s){
+      DATA.clientAvailability.push({ id: uid(), clientId, date, start: minToTime(s), end: minToTime(en) });
+      persist();
+    }
+    renderSchedule();
+  } else if(availResizeDrag){
+    const rd = availResizeDrag;
+    availResizeDrag = null;
+    if(rd.pendingStart==null || rd.pendingEnd==null){ renderSchedule(); return; }
+    const newStartStr = minToTime(rd.pendingStart);
+    const newEndStr = minToTime(rd.pendingEnd);
+    if(newStartStr===rd.origStart && newEndStr===rd.origEnd){ renderSchedule(); return; }
+    showConfirm('Update availability', `Change this availability to ${fmtTimeRange(newStartStr, newEndStr)}?`, ()=>{
+      const entry = DATA.clientAvailability.find(a=>a.id===rd.availId);
+      if(entry){ entry.start = newStartStr; entry.end = newEndStr; persist(); }
+      renderSchedule();
+    }, ()=>{
+      renderSchedule();
+    });
+  }
+});
 
 // Same greedy overlap-column assignment, but for plain {id,start,end} items in
 // minutes (already sorted by start) — used for laying out client availability
@@ -2444,35 +2669,67 @@ function renderClientSessionsPanel(){
     const target = c.sessionsPerWeek;
     const template = clientSplit(c);
     const done = sessions.map(s=>s.workoutType).filter(Boolean);
-    return { c, count: sessions.length, target, template, done, deficit: target-sessions.length };
-  }).sort((a,b)=> b.deficit - a.deficit);
+    const count = sessions.length;
+    const fullyScheduled = template.length ? template.every(label=>done.includes(label)) : !(count<target);
+    // Tier 0: already started but not finished (shown first — these need
+    // finishing). Tier 1: not started yet. Tier 2: fully booked (pushed to
+    // the bottom since there's nothing left to do).
+    const tier = fullyScheduled ? 2 : (count>0 ? 0 : 1);
+    return { c, count, target, template, done, deficit: target-count, fullyScheduled, tier };
+  }).sort((a,b)=> a.tier - b.tier || b.deficit - a.deficit);
   box.innerHTML = rows.map(r=>{
     const pct = r.target>0 ? Math.min(100, (r.count/r.target)*100) : 100;
     const short = r.count < r.target;
-    const fullyScheduled = r.template.length ? r.template.every(label=>r.done.includes(label)) : !short;
+    const fullyScheduled = r.fullyScheduled;
     const barColor = short ? 'var(--draft)' : 'var(--confirm)';
     const splitLine = r.template.length ? r.template.map(label=>{
       const hit = r.done.includes(label);
       return `<span class="chip" style="padding:2px 8px; font-size:11px; ${hit?`background:var(--confirm-soft); border-color:var(--confirm); color:var(--confirm);`:''}">${hit?'✓ ':''}${escapeHtml(label)}</span>`;
     }).join(' ') : '';
     const note = getClientWeekNote(r.c.id, weekStartStr);
+    const highlighted = UI.highlightedClients.has(r.c.id);
+    const soleHighlighted = highlighted && UI.highlightedClients.size===1;
+    const editActive = UI.availEditClientId === r.c.id;
     return `<div style="margin-bottom:13px; ${fullyScheduled?'opacity:0.65;':''}">
-      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:3px; gap:6px;">
-        <span style="display:flex; align-items:center; gap:7px; min-width:0;">
-          <input type="checkbox" disabled ${fullyScheduled?'checked':''} title="${fullyScheduled?'All sessions booked for this week':'Still has sessions to book this week'}" style="width:auto; margin:0; flex:0 0 auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:3px; gap:6px; flex-wrap:wrap;">
+        <span style="display:flex; align-items:center; gap:7px; min-width:0; flex-wrap:wrap;">
+          <input type="checkbox" class="highlight-client-checkbox" data-client-id="${r.c.id}" ${highlighted?'checked':''} title="Show ${escapeHtml(r.c.name)}'s availability on the calendar" style="flex:0 0 auto; cursor:pointer;">
           <span style="font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${fullyScheduled?'text-decoration:line-through;':''}">${escapeHtml(r.c.name)}</span>
+          <span class="badge ${r.c.type}" style="flex:0 0 auto;">${shortTypeLabel(r.c.type)}</span>
         </span>
         <span style="color:var(--ink-muted); flex:0 0 auto;">${r.count} / ${r.target} booked</span>
       </div>
       <div style="height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; margin-bottom:6px;">
         <div style="height:100%; width:${pct}%; background:${barColor};"></div>
       </div>
-      <div style="display:flex; align-items:center; gap:6px;">
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
         ${splitLine ? `<div style="display:flex; gap:4px; flex-wrap:wrap; flex:1 1 auto; min-width:0;">${splitLine}</div>` : '<div style="flex:1 1 auto;"></div>'}
-        <input type="text" class="week-note-input" data-client-id="${r.c.id}" value="${escapeHtml(note)}" placeholder="Note…" title="Quick note for this week (e.g. &quot;only legs&quot;)" style="font-size:11px; padding:4px 7px; flex:0 0 170px; width:170px;">
+        <button type="button" class="btn btn-sm add-avail-btn ${editActive?'active':''}" data-client-id="${r.c.id}" ${soleHighlighted?'':'disabled'} title="${soleHighlighted?('Add or edit '+escapeHtml(r.c.name)+' availability right on the calendar'):'Check this client (and only this one) above to enable'}" style="flex:0 0 auto;">${editActive?'Editing on calendar ✓':'+ Add availability'}</button>
       </div>
+      <input type="text" class="week-note-input" data-client-id="${r.c.id}" value="${escapeHtml(note)}" placeholder="Quick note for this week (e.g. &quot;only legs&quot;)" style="font-size:11px; padding:4px 7px; width:100%;">
     </div>`;
   }).join('');
+  box.querySelectorAll('.highlight-client-checkbox').forEach(cb=>{
+    cb.addEventListener('change', function(){
+      const id = this.dataset.clientId;
+      if(this.checked) UI.highlightedClients.add(id);
+      else UI.highlightedClients.delete(id);
+      // Editing only makes sense while exactly one client is checked — drop
+      // out of edit mode the moment that's no longer true.
+      if(UI.availEditClientId && !(UI.highlightedClients.size===1 && UI.highlightedClients.has(UI.availEditClientId))){
+        UI.availEditClientId = null;
+      }
+      renderSchedule();
+    });
+  });
+  box.querySelectorAll('.add-avail-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      if(this.disabled) return;
+      const id = this.dataset.clientId;
+      UI.availEditClientId = (UI.availEditClientId===id) ? null : id;
+      renderSchedule();
+    });
+  });
   box.querySelectorAll('.week-note-input').forEach(inp=>{
     inp.addEventListener('input', function(){
       setClientWeekNote(this.dataset.clientId, weekStartStr, this.value);
