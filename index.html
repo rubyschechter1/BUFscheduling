@@ -94,6 +94,7 @@
   .client-type-toggles{display:flex; gap:6px;}
   .client-type-toggles .btn{flex:1 1 0; padding:6px 4px; font-size:11.5px; text-align:center;}
   .client-type-toggles .btn.on{background:rgba(255,255,255,0.22); color:#fff; font-weight:800; border-color:rgba(255,255,255,0.4);}
+  .cs-filter-toggles .btn.active{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:800;}
 
   .sidebar-foot{margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,0.14);}
   .sidebar-foot button{
@@ -368,8 +369,13 @@
           <div class="card pad">
             <div class="panel-title">This week's client sessions</div>
             <div class="panel-sub">A client is checked off once every session in their weekly split is booked. Checkboxes reset automatically for each new week — just switch to the week you're scheduling with "Next week" above.</div>
-            <div class="field" style="margin-bottom:10px;">
+            <div class="field" style="margin-bottom:8px;">
               <input type="text" id="clientSessionsSearch" placeholder="Search clients…">
+            </div>
+            <div class="client-type-toggles cs-filter-toggles" style="margin-bottom:10px;">
+              <button type="button" class="btn btn-sm" id="csFilterSolo">1-on-1</button>
+              <button type="button" class="btn btn-sm" id="csFilterDuo">1-on-2</button>
+              <button type="button" class="btn btn-sm" id="csFilterEither">Both</button>
             </div>
             <div id="clientSessionsPanel" style="max-height:420px; overflow-y:auto; padding-right:4px;"></div>
           </div>
@@ -864,6 +870,7 @@ const UI = {
   selectedClientId: null,
   clientSearch: '',
   clientSessionsSearch: '',
+  clientSessionsTypeFilter: new Set(),
   sessionModal: { editingId:null, date:null, status:'draft', type:'solo', trainerId:null, clientIds:[], workoutType:'', autoDuration:true, switchIndex:null, switchSearch:'' },
   trainerModal: { editingId:null, color: TRAINER_COLORS[0], employmentType:'full', targetHours:30 },
   clientModal: { editingId:null, type:'either', excluded:[], sessionLength:60 }
@@ -1836,6 +1843,13 @@ function renderClientDetail(){
 document.getElementById('addClientBtn').addEventListener('click', ()=> openClientModal(null));
 document.getElementById('clientSearch').addEventListener('input', function(){ UI.clientSearch = this.value; renderClientsTab(); });
 document.getElementById('clientSessionsSearch').addEventListener('input', function(){ UI.clientSessionsSearch = this.value; renderClientSessionsPanel(); });
+[['csFilterSolo','solo'],['csFilterDuo','duo'],['csFilterEither','either']].forEach(([id,type])=>{
+  document.getElementById(id).addEventListener('click', ()=>{
+    if(UI.clientSessionsTypeFilter.has(type)) UI.clientSessionsTypeFilter.delete(type);
+    else UI.clientSessionsTypeFilter.add(type);
+    renderClientSessionsPanel();
+  });
+});
 
 function openClientModal(id){
   const c = id ? clientById(id) : null;
@@ -2656,11 +2670,24 @@ function renderHoursPanel(){
 function renderClientSessionsPanel(){
   const box = document.getElementById('clientSessionsPanel');
   if(!box) return;
+
+  // sync the type-filter chip buttons' active state
+  [['csFilterSolo','solo'],['csFilterDuo','duo'],['csFilterEither','either']].forEach(([id,type])=>{
+    const btn = document.getElementById(id);
+    if(btn) btn.classList.toggle('active', UI.clientSessionsTypeFilter.has(type));
+  });
+
   const tracked = DATA.clients.filter(c=>c.sessionsPerWeek>0);
   if(tracked.length===0){ box.innerHTML = '<div class="hint">Set "Sessions per week" on a client\'s profile to track them here.</div>'; return; }
   const search = (UI.clientSessionsSearch||'').trim().toLowerCase();
-  const filtered = search ? tracked.filter(c=>c.name.toLowerCase().includes(search)) : tracked;
-  if(filtered.length===0){ box.innerHTML = `<div class="hint">No tracked clients match "${escapeHtml(UI.clientSessionsSearch)}".</div>`; return; }
+  let filtered = search ? tracked.filter(c=>c.name.toLowerCase().includes(search)) : tracked;
+  if(UI.clientSessionsTypeFilter.size>0) filtered = filtered.filter(c=>UI.clientSessionsTypeFilter.has(c.type));
+  if(filtered.length===0){
+    box.innerHTML = search
+      ? `<div class="hint">No tracked clients match "${escapeHtml(UI.clientSessionsSearch)}".</div>`
+      : `<div class="hint">No tracked clients match that filter.</div>`;
+    return;
+  }
   const dates = weekDates();
   const weekDateSet = new Set(dates.map(fmtDate));
   const weekStartStr = fmtDate(UI.weekStart);
