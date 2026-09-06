@@ -47,6 +47,7 @@
     color:#EAF3EF;
     display:flex; flex-direction:column;
     padding:22px 14px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
   }
   .brand{padding:0 8px 22px 8px; border-bottom:1px solid rgba(255,255,255,0.14); margin-bottom:16px;}
   .brand-mark{
@@ -66,6 +67,34 @@
   .nav button:hover{background:rgba(255,255,255,0.08); color:#fff;}
   .nav button.active{background:rgba(255,255,255,0.16); color:#fff;}
   .nav .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:0.55;flex:0 0 auto;}
+
+  .sidebar-toggles{display:none; margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.14); overflow-y:visible; flex:1 1 auto; min-height:0;}
+  .sidebar-toggles.show{display:block;}
+  .sst-section{margin-bottom:16px; position:relative;}
+  .sst-title-row{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
+  .sst-title{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:#9FC0B1;}
+  .sst-title-row .btn{width:auto; padding:5px 10px; font-size:11.5px;}
+  .sidebar-toggles .btn{background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); color:#EAF3EF;}
+  .sidebar-toggles .btn:hover{background:rgba(255,255,255,0.16);}
+  .sidebar-toggles .btn:disabled{opacity:0.4; cursor:default;}
+  .sidebar-toggles .hint{color:#9FC0B1;}
+
+  .dropdown-wrap{position:relative;}
+  .dropdown-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px;}
+  .dropdown-btn .care{font-size:10px; opacity:0.8;}
+  .dropdown-btn:disabled{opacity:0.5; cursor:default;}
+  .dropdown-panel{display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; background:#173B31; border:1px solid rgba(255,255,255,0.2); border-radius:9px; padding:8px; z-index:50; box-shadow:0 12px 28px rgba(0,0,0,0.4);}
+  .dropdown-panel.open{display:block;}
+  .dropdown-list{max-height:220px; overflow-y:auto; margin-top:6px;}
+  .dropdown-list label{display:flex; align-items:center; gap:8px; padding:6px 5px; font-size:12.5px; color:#DCEEE7; border-radius:6px; cursor:pointer;}
+  .dropdown-list label:hover{background:rgba(255,255,255,0.08);}
+  .dropdown-list input{width:auto; flex:0 0 auto;}
+  .dropdown-list .empty{padding:6px 5px; font-size:12px; color:#9FC0B1;}
+
+  .client-type-toggles{display:flex; gap:6px;}
+  .client-type-toggles .btn{flex:1 1 0; padding:6px 4px; font-size:11.5px; text-align:center;}
+  .client-type-toggles .btn.on{background:rgba(255,255,255,0.22); color:#fff; font-weight:800; border-color:rgba(255,255,255,0.4);}
+
   .sidebar-foot{margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,0.14);}
   .sidebar-foot button{
     width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16);
@@ -88,6 +117,7 @@
   }
   .btn:hover{background:var(--surface-alt);}
   .btn-primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.active{background:var(--draft); border-color:var(--draft); color:#fff;}
   .btn-primary:hover{background:var(--accent-dark);}
   .btn-danger{background:#fff; border-color:var(--danger); color:var(--danger);}
   .btn-danger:hover{background:#FBEAE9;}
@@ -145,9 +175,6 @@
   .toggle-row{display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:4px; font-size:12.5px; font-weight:600;}
   .toggle-row button{border:none; background:transparent; padding:5px 12px; border-radius:16px;}
   .toggle-row button.active{background:var(--accent); color:#fff;}
-  .legend-bar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
-  .legend-bar .chip{cursor:pointer; user-select:none; border:1.5px solid var(--border); transition:background 0.15s, border-color 0.15s;}
-  .legend-bar .chip.on{font-weight:800;}
 
   .sched-layout{display:grid; grid-template-columns:1fr 300px; gap:18px; align-items:start;}
 
@@ -169,16 +196,12 @@
   .rail .lane{flex:1 1 0; position:relative; background:#fff;}
   .rail .seg{position:absolute; left:0; right:0; border-radius:2px; opacity:0.9; pointer-events:auto;}
   .rail .seg.off{background:repeating-linear-gradient(45deg, #E3E6E0, #E3E6E0 3px, #F3F4F1 3px, #F3F4F1 6px);}
-  .heat-layer{position:absolute; left:2px; right:2px; top:0; height:100%; pointer-events:none;}
-  .heat-seg{position:absolute; left:0; right:0; border-radius:3px; background:var(--accent);}
-  .heat-seg .cnt{position:absolute; top:1px; right:3px; font-size:9.5px; font-weight:800; color:var(--accent-dark);}
-  .heat-empty{color:var(--ink-muted); font-size:11px; text-align:center; padding-top:40px;}
   .sessions-area{position:absolute; left:66px; right:3px; top:0; bottom:0;}
   .sessions-area.editable{cursor:copy;}
   .client-hl{position:absolute; left:0; right:0; border:1.5px dashed var(--accent); background:rgba(46,110,94,0.08); border-radius:5px; pointer-events:none;}
   .client-hl.second{border-color:#39508F; background:rgba(57,80,143,0.08);}
-  .match-hl{position:absolute; left:2px; right:2px; border:2px solid var(--confirm); background:rgba(35,107,62,0.30); border-radius:5px; pointer-events:none; z-index:2;}
-  .match-hl .lbl{position:absolute; top:2px; left:4px; font-size:10px; font-weight:800; color:var(--confirm-soft); background:var(--confirm); padding:1px 5px; border-radius:4px;}
+  .client-avail-box{position:absolute; left:1px; right:1px; border-radius:4px; pointer-events:auto; border-left-width:4px; border-left-style:solid; border-top:1px solid rgba(0,0,0,0.06); border-bottom:1px solid rgba(0,0,0,0.06); border-right:1px solid rgba(0,0,0,0.06);}
+  .client-avail-box .cname{position:absolute; top:2px; left:6px; font-size:9.5px; font-weight:800; background:rgba(255,255,255,0.88); padding:0 4px; border-radius:3px; white-space:nowrap; max-width:calc(100% - 12px); overflow:hidden; text-overflow:ellipsis;}
   .sess-block{position:absolute; border-radius:6px; padding:4px 6px; overflow:hidden; color:#fff; font-size:11px; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.18); border:1px solid rgba(0,0,0,0.08);}
   .sess-block:hover{filter:brightness(1.06);}
   .sess-block.draft{background-image:repeating-linear-gradient(135deg, rgba(255,255,255,0.16) 0 6px, rgba(255,255,255,0.02) 6px 12px);}
@@ -196,6 +219,11 @@
   .overlay{position:fixed; inset:0; background:rgba(20,30,25,0.42); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
   .overlay.open{display:flex;}
   .modal{background:#fff; border-radius:12px; width:100%; max-width:440px; max-height:88vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.25);}
+  .modal.modal-lg{max-width:900px;}
+  .avail-existing-box{position:absolute; left:2px; right:2px; border-radius:4px; pointer-events:none; opacity:0.55;}
+  .avail-existing-box .cname{position:absolute; top:2px; left:5px; font-size:9.5px; font-weight:800; background:rgba(255,255,255,0.85); padding:0 4px; border-radius:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:calc(100% - 10px);}
+  .avail-select-col{position:absolute; inset:0; cursor:crosshair;}
+  .avail-drag-box{position:absolute; left:2px; right:2px; background:rgba(46,110,94,0.28); border:2px solid var(--accent); border-radius:5px; pointer-events:none;}
   .modal-head{padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;}
   .modal-head h3{font-size:16px;}
   .modal-head button{background:none; border:none; font-size:20px; line-height:1; color:var(--ink-muted); padding:2px 6px;}
@@ -205,11 +233,23 @@
   .seg-control button{flex:1; padding:8px; background:#fff; border:none; border-right:1px solid var(--border); font-weight:600; font-size:12.5px;}
   .seg-control button:last-child{border-right:none;}
   .seg-control button.active{background:var(--accent); color:#fff;}
+  .seg-control button:disabled{opacity:0.4; cursor:not-allowed; background:var(--surface-alt);}
   .client-pick-list{max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px;}
   .client-pick-list label{display:flex; align-items:center; gap:8px; padding:7px 10px; font-weight:500; font-size:13px; color:var(--ink); border-bottom:1px solid var(--border); cursor:pointer;}
   .client-pick-list label:last-child{border-bottom:none;}
   .client-pick-list label:hover{background:var(--surface-alt);}
   .client-pick-list input{width:auto;}
+
+  .client-slot{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; background:var(--surface-alt);}
+  .client-slot .slot-info{display:flex; align-items:center; gap:8px; min-width:0;}
+  .client-slot .slot-name{font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .client-slot.empty{justify-content:center; background:transparent; border-style:dashed;}
+  .client-slot.switching{flex-direction:column; align-items:stretch; background:#fff;}
+  .client-slot.switching input[type=text]{margin-bottom:0;}
+  .slot-candidates{max-height:160px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; margin:8px 0;}
+  .slot-candidate{padding:7px 10px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:8px; border-bottom:1px solid var(--border);}
+  .slot-candidate:last-child{border-bottom:none;}
+  .slot-candidate:hover{background:var(--surface-alt);}
 
   @media (max-width: 980px){
     .sched-layout{grid-template-columns:1fr;}
@@ -217,10 +257,11 @@
   }
   @media (max-width: 720px){
     .app{flex-direction:column;}
-    .sidebar{width:100%; flex:none; flex-direction:row; align-items:center; padding:12px 14px;}
+    .sidebar{width:100%; flex:none; flex-direction:row; align-items:center; padding:12px 14px; position:static; height:auto; overflow-y:visible; flex-wrap:wrap;}
     .brand{border:none; padding:0; margin:0 14px 0 0;}
     .brand p{display:none;}
     .nav{flex-direction:row;}
+    .sidebar-toggles{width:100%; border-top:none; margin-top:8px; padding-top:8px; flex:none;}
     .sidebar-foot{display:none;}
     .main{padding:16px;}
   }
@@ -240,6 +281,35 @@
       <button data-tab="trainers"><span class="dot"></span>Trainers</button>
       <button data-tab="clients"><span class="dot"></span>Clients</button>
     </div>
+
+    <div class="sidebar-toggles show" id="sidebarScheduleToggles">
+      <div class="sst-section">
+        <div class="sst-title-row">
+          <div class="sst-title">Trainers</div>
+          <button type="button" class="btn btn-sm" id="toggleAllTrainersBtn"></button>
+        </div>
+        <div class="dropdown-wrap" id="trainerDropdownWrap">
+          <button type="button" class="btn btn-sm dropdown-btn" id="trainerDropdownBtn">Select trainers <span class="care">▾</span></button>
+          <div class="dropdown-panel" id="trainerDropdownPanel">
+            <div class="dropdown-list" id="trainerDropdownList"></div>
+          </div>
+        </div>
+        <div id="modeHint" class="hint"></div>
+      </div>
+      <div class="sst-section">
+        <div class="sst-title-row">
+          <div class="sst-title">Clients</div>
+          <button type="button" class="btn btn-sm" id="toggleAllClientsBtn"></button>
+        </div>
+        <div class="client-type-toggles">
+          <button type="button" class="btn btn-sm" id="toggleSoloClientsBtn" title="Clients set to 1-on-1 only">1-on-1</button>
+          <button type="button" class="btn btn-sm" id="toggleDuoClientsBtn" title="Clients set to 1-on-2 or Either">1-on-2</button>
+          <button type="button" class="btn btn-sm" id="toggleEitherClientsBtn" title="Clients set to Either only">Both</button>
+        </div>
+        <div id="clientModeHint" class="hint"></div>
+      </div>
+    </div>
+
     <div class="sidebar-foot">
       <button id="btnExport">Export backup (.json)</button>
       <button id="btnImport">Import backup</button>
@@ -255,7 +325,7 @@
       <div class="view-header">
         <div>
           <h2>Schedule</h2>
-          <div class="sub">Shaded areas show how many trainers are free — darker means more options. Select a trainer below to see their exact hours in color.</div>
+          <div class="sub">Use the toggles in the left sidebar to see trainers' or clients' schedules in color.</div>
         </div>
       </div>
 
@@ -270,10 +340,9 @@
           <button data-mode="view" id="modeView">View only</button>
           <button data-mode="edit" id="modeEdit" class="active">Edit</button>
         </div>
+        <button class="btn btn-sm" id="toggleBookedBtn">Hide booked sessions</button>
       </div>
 
-      <div class="legend-bar" id="trainerLegend"></div>
-      <div id="modeHint" class="hint" style="margin:-6px 0 8px;"></div>
       <div id="exclusionHint" class="hint" style="margin:-4px 0 12px;"></div>
 
       <div class="sched-layout">
@@ -286,23 +355,40 @@
 
         <div style="display:flex; flex-direction:column; gap:16px;">
           <div class="card pad">
-            <div class="panel-title">Match finder</div>
-            <div class="panel-sub">Pick one or two clients — the actual bookable windows will be highlighted in solid green on the grid, and listed below with full-time, under-hours trainers suggested first.</div>
-            <div class="field">
-              <label>Client A</label>
-              <select id="matchClientA"></select>
+            <div class="panel-title">This week's client sessions</div>
+            <div class="panel-sub">A client is checked off once every session in their weekly split is booked. Checkboxes reset automatically for each new week — just switch to the week you're scheduling with "Next week" above.</div>
+            <div class="field" style="margin-bottom:10px;">
+              <input type="text" id="clientSessionsSearch" placeholder="Search clients…">
             </div>
-            <div class="field">
-              <label>Client B (for 1-on-2 only)</label>
-              <select id="matchClientB"><option value="">— none —</option></select>
-            </div>
-            <div id="matchResults"></div>
+            <div id="clientSessionsPanel" style="max-height:420px; overflow-y:auto; padding-right:4px;"></div>
           </div>
 
           <div class="card pad">
             <div class="panel-title">This week's hours</div>
             <div class="panel-sub">Full-time trainers are listed first so you can prioritize filling their hours.</div>
             <div id="hoursPanel"></div>
+          </div>
+
+          <div class="card pad">
+            <div class="panel-title">Match finder</div>
+            <div class="panel-sub">Pick one or two clients — matching windows are listed below, with full-time, under-hours trainers suggested first.</div>
+            <div class="field">
+              <label>Client A</label>
+              <select id="matchClientA"></select>
+            </div>
+            <div class="field" id="matchWorkoutAField" style="display:none;">
+              <label>Which day for Client A?</label>
+              <select id="matchWorkoutA"></select>
+            </div>
+            <div class="field">
+              <label>Client B (for 1-on-2 only)</label>
+              <select id="matchClientB"><option value="">— none —</option></select>
+            </div>
+            <div class="field" id="matchWorkoutBField" style="display:none;">
+              <label>Which day for Client B?</label>
+              <select id="matchWorkoutB"></select>
+            </div>
+            <div id="matchResults"></div>
           </div>
         </div>
       </div>
@@ -330,8 +416,19 @@
           <h2>Clients</h2>
           <div class="sub">Log each client's session type and the availability they text you back, week by week.</div>
         </div>
-        <button class="btn btn-primary" id="addClientBtn">+ Add client</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="openAvailInputBtn">Input Client Availability</button>
+          <button class="btn btn-primary" id="addClientBtn">+ Add client</button>
+        </div>
       </div>
+
+      <div class="card pad" style="margin-bottom:16px;">
+        <div class="panel-title">Weekly workout splits</div>
+        <div class="panel-sub">The order of workouts 2x/3x-week clients follow, based on how many sessions/week they're set to on their profile. Separate each day with a comma. 1x/week clients pick their own single workout on their profile instead.</div>
+        <div id="splitTemplateRows"></div>
+        <button class="btn btn-primary" id="saveSplitsBtn" style="margin-top:4px;">Save splits</button>
+      </div>
+
       <div class="two-col">
         <div>
           <div class="field" style="margin-bottom:10px;">
@@ -380,8 +477,13 @@
         </div>
       </div>
       <div class="field">
-        <label id="clientPickLabel">Client(s)</label>
-        <div class="client-pick-list" id="clientPickList"></div>
+        <label id="clientPickLabel">Client</label>
+        <div id="clientSlotsWrap"></div>
+      </div>
+      <div class="field" id="workoutTypeField" style="display:none;">
+        <label>Workout</label>
+        <select id="sessWorkout"></select>
+        <div class="hint" id="workoutHint"></div>
       </div>
       <div class="hint" id="sessConfirmHint">Marking a session "Confirmed" is just a note to yourself that you've told both sides and sent the Google Calendar invite — Blockline doesn't touch your calendar.</div>
     </div>
@@ -435,6 +537,34 @@
           <button type="button" data-ctype="either" id="ctEither">Either</button>
         </div>
       </div>
+      <div class="field">
+        <label>Sessions per week</label>
+        <select id="clientFreq">
+          <option value="0">Not tracked</option>
+          <option value="1">1x / week</option>
+          <option value="2">2x / week</option>
+          <option value="3">3x / week</option>
+        </select>
+        <div class="hint" id="clientSplitPreview"></div>
+      </div>
+      <div class="field" id="workoutChoiceField" style="display:none;">
+        <label>Which workout do they do?</label>
+        <select id="clientWorkoutChoice">
+          <option value="">Not set</option>
+          <option value="Push">Push</option>
+          <option value="Pull">Pull</option>
+          <option value="Legs">Legs</option>
+          <option value="Pull/Push">Pull/Push</option>
+          <option value="Legs/Overhead Press">Legs/Overhead Press</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Session length</label>
+        <div class="seg-control">
+          <button type="button" data-len="60" id="lenHour">1 hour</button>
+          <button type="button" data-len="30" id="lenHalf">30 minutes</button>
+        </div>
+      </div>
       <div class="field"><label>Notes</label><textarea id="clientNotes" rows="3" placeholder="Anything worth remembering — goals, injuries, preferred partner, etc."></textarea></div>
       <div class="field">
         <label>Won't train with</label>
@@ -447,6 +577,46 @@
       <div style="flex:1"></div>
       <button class="btn" id="clientCancel">Cancel</button>
       <button class="btn btn-primary" id="clientSave">Save client</button>
+    </div>
+  </div>
+</div>
+
+<!-- Availability input modal: blank calendar, click/drag a block, assign a client -->
+<div class="overlay" id="availInputOverlay">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3>Input client availability</h3>
+      <button id="availInputClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="margin-bottom:10px;">Click or drag on the calendar to select a block of time, then assign it to a client. Existing availability is shown faded in the background.</div>
+      <div class="sched-toolbar" style="margin-bottom:10px;">
+        <div class="week-nav">
+          <button class="btn btn-sm" id="availPrevWeek">&larr; Prev</button>
+          <div class="wk-label" id="availWkLabel">—</div>
+          <button class="btn btn-sm" id="availNextWeek">Next &rarr;</button>
+          <button class="btn btn-sm" id="availTodayBtn">This week</button>
+        </div>
+      </div>
+      <div class="grid-wrap">
+        <div class="grid-scroll">
+          <div id="availGridHead" class="grid-head"></div>
+          <div id="availGridBody" class="grid-body"></div>
+        </div>
+      </div>
+      <div id="availAssignPanel" class="card pad" style="display:none; margin-top:12px;">
+        <div class="panel-title" id="availAssignWhen">—</div>
+        <div class="row2" style="align-items:end;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Client</label>
+            <select id="availAssignClient"></select>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" id="availAssignAdd" style="width:100%;">Add availability</button>
+            <button class="btn" id="availAssignCancel">Cancel</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -485,7 +655,10 @@ const Store = {
     }
   },
   blank(){
-    return { trainers: [], trainerAvailability: [], clients: [], clientAvailability: [], sessions: [] };
+    return {
+      trainers: [], trainerAvailability: [], clients: [], clientAvailability: [], sessions: [],
+      splitTemplates: { '2': ['Pull/Push','Legs/Overhead Press'], '3': ['Push','Pull','Legs'] }
+    };
   }
 };
 
@@ -498,7 +671,11 @@ function normalizeData(){
   });
   DATA.clients.forEach(c=>{
     if(!c.excludedTrainerIds) c.excludedTrainerIds = [];
+    if(c.sessionsPerWeek==null) c.sessionsPerWeek = 0;
+    if(c.sessionLength==null) c.sessionLength = 60;
+    if(c.workoutChoice==null) c.workoutChoice = '';
   });
+  if(!DATA.splitTemplates) DATA.splitTemplates = Store.blank().splitTemplates;
 }
 normalizeData();
 function persist(){ Store.save(DATA); }
@@ -617,6 +794,14 @@ function intersectIntervals(a, b){
 }
 
 const TRAINER_COLORS = ['#2E6E5E','#B5533C','#4C6FB1','#C98A3B','#7C5CBF','#3E8E8E','#A6494F','#5B7B3F','#8C6A46','#4A5A8C','#B08A2E','#5F7A93'];
+const CLIENT_COLORS = ['#39508F','#B5533C','#2E6E5E','#8C5A1E','#7C5CBF','#3E8E8E','#A6494F','#5B7B3F','#8C6A46','#4A5A8C','#B08A2E','#5F7A93'];
+// The five standard workout types offered wherever a workout picker shows up
+// (client profile's 1x/week choice, and the session modal's Workout field).
+const WORKOUT_CHOICES = ['Push','Pull','Legs','Pull/Push','Legs/Overhead Press'];
+function clientColor(client){
+  const idx = DATA.clients.findIndex(c=>c.id===client.id);
+  return CLIENT_COLORS[(idx<0?0:idx) % CLIENT_COLORS.length];
+}
 
 /* ---------------------------------------------------------------------
    APP STATE
@@ -625,13 +810,21 @@ const UI = {
   tab: 'schedule',
   weekStart: startOfWeek(new Date()),
   editMode: true,
+  showBookedSessions: true,
   visibleTrainers: new Set(), // filled after load
+  visibleClients: new Set(),
+  clientTypeOn: { solo:false, duo:false, either:false },
+  trainerDropdownOpen: false,
+  trainerAvailTab: 'available',
+  matchWorkoutA: '',
+  matchWorkoutB: '',
   selectedTrainerId: null,
   selectedClientId: null,
   clientSearch: '',
-  sessionModal: { editingId:null, date:null, status:'draft', type:'solo', trainerId:null, clientIds:[] },
+  clientSessionsSearch: '',
+  sessionModal: { editingId:null, date:null, status:'draft', type:'solo', trainerId:null, clientIds:[], workoutType:'', autoDuration:true, switchIndex:null, switchSearch:'' },
   trainerModal: { editingId:null, color: TRAINER_COLORS[0], employmentType:'full', targetHours:30 },
-  clientModal: { editingId:null, type:'either', excluded:[] }
+  clientModal: { editingId:null, type:'either', excluded:[], sessionLength:60 }
 };
 
 const GRID_START = 6*60;   // 6:00am
@@ -666,36 +859,43 @@ function trainerRawAvailability(trainerId, dateStr){
   const off = entries.filter(a=>a.type==='off').map(a=>[timeToMin(a.start), timeToMin(a.end)]);
   return { base, off };
 }
+// A client's availability for a day disappears entirely once they have any
+// session booked that day — the day is considered "spent," not just the
+// specific hour that got booked, since each day in their split is one workout.
+// It also disappears for every remaining day once their weekly quota is fully
+// booked — e.g. a 3x/week client who gave 4 possible days only needs 3 of
+// them, so once those 3 are booked the 4th stops showing as available too.
 function clientFreeIntervals(clientId, dateStr, opts){
   opts = opts || {};
-  const entries = DATA.clientAvailability.filter(a=>a.clientId===clientId && a.date===dateStr);
-  let base = mergeIntervals(entries.map(a=>[timeToMin(a.start), timeToMin(a.end)]));
-  const booked = DATA.sessions.filter(s=>s.date===dateStr && s.clientIds.includes(clientId) && (!opts.excludeSessionId || s.id!==opts.excludeSessionId))
-    .map(s=>[timeToMin(s.start), timeToMin(s.end)]);
-  return subtractIntervals(base, booked);
-}
+  const alreadyBookedToday = DATA.sessions.some(s=>s.date===dateStr && s.clientIds.includes(clientId) && (!opts.excludeSessionId || s.id!==opts.excludeSessionId));
+  if(alreadyBookedToday) return [];
 
-// Sweep-line: for a day, breaks the grid window into segments where the SET of
-// free trainers is constant, so the heatmap can shade by how many are free.
-function computeHeatSegments(dateStr, trainerList){
-  const perTrainer = trainerList.map(t=>({ t, intervals: trainerFreeIntervals(t.id, dateStr) }));
-  const points = new Set([GRID_START, GRID_END]);
-  perTrainer.forEach(({intervals})=>{
-    intervals.forEach(iv=>{
-      const s = Math.max(iv[0], GRID_START), e = Math.min(iv[1], GRID_END);
-      if(e>s){ points.add(s); points.add(e); }
-    });
-  });
-  const bounds = Array.from(points).sort((a,b)=>a-b);
-  const segs = [];
-  for(let i=0;i<bounds.length-1;i++){
-    const s = bounds[i], e = bounds[i+1];
-    if(e<=s) continue;
-    const mid = (s+e)/2;
-    const names = perTrainer.filter(({intervals})=> intervals.some(iv=> iv[0]<=mid && iv[1]>=mid)).map(x=>x.t.name);
-    segs.push({ start:s, end:e, count:names.length, names });
+  const client = clientById(clientId);
+  if(client && client.sessionsPerWeek>0){
+    const weekStart = startOfWeek(parseDate(dateStr));
+    const weekDateSet = new Set(Array.from({length:7}, (_,i)=>fmtDate(addDays(weekStart,i))));
+    const bookedThisWeek = DATA.sessions.filter(s=> weekDateSet.has(s.date) && s.clientIds.includes(clientId) && (!opts.excludeSessionId || s.id!==opts.excludeSessionId)).length;
+    if(bookedThisWeek >= client.sessionsPerWeek) return [];
   }
-  return segs;
+
+  const entries = DATA.clientAvailability.filter(a=>a.clientId===clientId && a.date===dateStr);
+  return mergeIntervals(entries.map(a=>[timeToMin(a.start), timeToMin(a.end)]));
+}
+// Whether a client's logged availability fully covers a specific time window.
+function clientIsFreeForWindow(clientId, dateStr, startStr, endStr, excludeSessionId){
+  if(!dateStr || !startStr || !endStr) return true;
+  const s = timeToMin(startStr), e = timeToMin(endStr);
+  const free = clientFreeIntervals(clientId, dateStr, { excludeSessionId });
+  return free.some(iv => iv[0]<=s && iv[1]>=e);
+}
+// Whether a trainer is actually free for a specific time window — i.e. not on
+// time off, not already booked elsewhere, and (if they have any availability
+// entered at all that day) inside one of their available blocks.
+function trainerIsFreeForWindow(trainerId, dateStr, startStr, endStr, excludeSessionId){
+  if(!dateStr || !startStr || !endStr) return true;
+  const s = timeToMin(startStr), e = timeToMin(endStr);
+  const free = trainerFreeIntervals(trainerId, dateStr, { excludeSessionId });
+  return free.some(iv => iv[0]<=s && iv[1]>=e);
 }
 
 function trainerTargetHours(t){ return t.targetHours!=null ? t.targetHours : (t.employmentType==='part' ? 15 : 30); }
@@ -703,6 +903,59 @@ function trainerWeekHours(trainerId, dateSet){
   const mins = DATA.sessions.filter(s=>s.trainerId===trainerId && dateSet.has(s.date))
     .reduce((sum,s)=> sum + (timeToMin(s.end)-timeToMin(s.start)), 0);
   return mins/60;
+}
+
+/* ---- Workout splits & client session tracking ---- */
+function splitForFreq(freq){
+  if(!freq) return [];
+  return (DATA.splitTemplates && DATA.splitTemplates[String(freq)]) || [];
+}
+// 2x/3x clients follow the shared team split (Weekly workout splits editor).
+// 1x/week clients don't share one — each picks their own single workout on
+// their profile, since there's no "order" to infer with only one session.
+function clientSplit(client){
+  if(!client) return [];
+  if(client.sessionsPerWeek===1) return client.workoutChoice ? [client.workoutChoice] : [];
+  return splitForFreq(client.sessionsPerWeek);
+}
+function clientWeekSessions(clientId, dateSet, excludeSessionId){
+  return DATA.sessions.filter(s=> s.clientIds.includes(clientId) && dateSet.has(s.date) && (!excludeSessionId || s.id!==excludeSessionId))
+    .sort((a,b)=> a.date===b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date));
+}
+// The workout label for a specific date, based on where that date ranks among
+// the client's logged-available days that week (earliest available day = first
+// workout in their split, e.g. Pull/Push for 2x/week or Push for 3x/week).
+function clientAvailableDatesInWeek(clientId, weekDateSet){
+  const dates = new Set();
+  DATA.clientAvailability.forEach(a=>{ if(a.clientId===clientId && weekDateSet.has(a.date)) dates.add(a.date); });
+  return dates;
+}
+function workoutLabelForDate(client, dateStr, weekDateSet){
+  const template = clientSplit(client);
+  if(template.length===0) return null;
+  const dateSet = clientAvailableDatesInWeek(client.id, weekDateSet);
+  dateSet.add(dateStr); // so this still works even if the date wasn't pre-logged
+  const sorted = Array.from(dateSet).sort();
+  const idx = sorted.indexOf(dateStr);
+  const rank = idx>=0 ? idx : sorted.length-1;
+  return template[Math.min(rank, template.length-1)];
+}
+function clientSessionLength(client){ return client && client.sessionLength===30 ? 30 : 60; }
+function shortTypeLabel(type){ return type==='solo' ? '1-on-1' : type==='duo' ? '1-on-2' : 'Both'; }
+// Which workouts in the client's split haven't been booked yet this week.
+function stillNeededWorkouts(client, weekDateSet){
+  const template = clientSplit(client);
+  if(template.length===0) return [];
+  const bookedLabels = clientWeekSessions(client.id, weekDateSet).map(s=>s.workoutType).filter(Boolean);
+  return template.filter(label=> !bookedLabels.includes(label));
+}
+function clientAvailBoxTooltip(client, weekDateSet){
+  let text = `${client.name} (${shortTypeLabel(client.type)})`;
+  if(client.sessionsPerWeek>0){
+    const needed = stillNeededWorkouts(client, weekDateSet);
+    text += needed.length ? ` — Still needs: ${needed.join(', ')}` : ' — All sessions scheduled this week';
+  }
+  return text;
 }
 
 /* ---------------------------------------------------------------------
@@ -714,6 +967,7 @@ document.querySelectorAll('.nav button').forEach(btn=>{
     document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b===btn));
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById('view-'+UI.tab).classList.add('active');
+    document.getElementById('sidebarScheduleToggles').classList.toggle('show', UI.tab==='schedule');
     renderAll();
   });
 });
@@ -742,6 +996,8 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
       normalizeData();
       persist();
       UI.visibleTrainers = new Set();
+      UI.visibleClients = new Set();
+      UI.clientTypeOn = { solo:false, duo:false, either:false };
       renderAll();
     }catch(err){
       alert('That file could not be read as a Blockline backup.');
@@ -803,56 +1059,97 @@ function renderTrainerDetail(){
 
     <div class="card pad" style="margin-bottom:16px;">
       <div class="panel-title">Add availability</div>
-      <div class="panel-sub">Add one or more time blocks — e.g. 9:00–4:00 and 8:00–10:00 on the same day — and choose whether it repeats weekly, like a calendar event.</div>
+      <div class="panel-sub">Switch tabs to add when ${escapeHtml(t.name)} can work, or block off time they can't — both work like a calendar event, with an option to repeat.</div>
 
-      <div class="field">
-        <label>Repeats</label>
-        <select id="availRepeat">
-          <option value="none">Does not repeat</option>
-          <option value="weekly" selected>Weekly, on selected days</option>
-        </select>
+      <div class="seg-control" style="margin-bottom:16px;">
+        <button type="button" id="availTabAvailable" class="${UI.trainerAvailTab==='available'?'active':''}">Available</button>
+        <button type="button" id="availTabOff" class="${UI.trainerAvailTab==='off'?'active':''}">Time off</button>
       </div>
 
-      <div id="availSingleDateRow" class="field" style="display:none;">
-        <label>Date</label><input type="date" id="availSingleDate">
-      </div>
-
-      <div id="availRangeRow">
+      <div id="availFormAvailable" style="${UI.trainerAvailTab==='off'?'display:none;':''}">
         <div class="field">
-          <label>Days of week</label>
-          <div class="weekday-picker" id="availWeekdays">
-            ${WEEKDAYS.map((d,i)=>`<label><input type="checkbox" value="${i}"><span>${d}</span></label>`).join('')}
+          <label>Repeats</label>
+          <select id="availRepeat">
+            <option value="none">Does not repeat</option>
+            <option value="weekly" selected>Weekly, on selected days</option>
+          </select>
+        </div>
+
+        <div id="availSingleDateRow" class="field" style="display:none;">
+          <label>Date</label><input type="date" id="availSingleDate">
+        </div>
+
+        <div id="availRangeRow">
+          <div class="field">
+            <label>Days of week</label>
+            <div class="weekday-picker" id="availWeekdays">
+              ${WEEKDAYS.map((d,i)=>`<label><input type="checkbox" value="${i}"><span>${d}</span></label>`).join('')}
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Starting</label><input type="date" id="availFrom"></div>
+            <div class="field"><label>Repeat until</label><input type="date" id="availTo"></div>
           </div>
         </div>
-        <div class="row2">
-          <div class="field"><label>Starting</label><input type="date" id="availFrom"></div>
-          <div class="field"><label>Repeat until</label><input type="date" id="availTo"></div>
+
+        <div class="field" id="availBlocksWrap">
+          <label>Time blocks</label>
+          <div id="availBlocksList"></div>
+          <button type="button" class="btn btn-sm" id="addBlockRowBtn" style="margin-top:2px;">+ Add another time block</button>
         </div>
-        <div class="field" style="display:flex; gap:6px;">
-          <button type="button" class="btn btn-sm" data-weeks="4">+4 weeks</button>
-          <button type="button" class="btn btn-sm" data-weeks="8">+8 weeks</button>
-          <button type="button" class="btn btn-sm" data-weeks="12">+12 weeks</button>
-        </div>
+        <button class="btn btn-primary" id="addAvailBtn" style="width:100%;">Add to calendar</button>
       </div>
 
-      <div class="field">
-        <label><input type="checkbox" id="availAllDay" style="width:auto; margin-right:6px;">Full day off (vacation / not working at all)</label>
-      </div>
-
-      <div class="field" id="availBlocksWrap">
-        <label>Time blocks</label>
-        <div id="availBlocksList"></div>
-        <button type="button" class="btn btn-sm" id="addBlockRowBtn" style="margin-top:2px;">+ Add another time block</button>
-      </div>
-
-      <div class="field">
-        <label>Type</label>
-        <div class="seg-control">
-          <button type="button" data-avtype="available" id="avAvailable" class="active">Available</button>
-          <button type="button" data-avtype="off" id="avOff">Time off</button>
+      <div id="availFormOff" style="${UI.trainerAvailTab==='off'?'':'display:none;'}">
+        <div class="field">
+          <label>Repeats</label>
+          <select id="offRepeat">
+            <option value="none">Does not repeat</option>
+            <option value="daily">Every day (date range)</option>
+            <option value="weekly">Weekly, on selected days</option>
+          </select>
         </div>
+
+        <div class="field">
+          <label>Blocking off</label>
+          <div class="seg-control">
+            <button type="button" data-offkind="allday" id="offAllDayBtn" class="active">Whole day(s)</button>
+            <button type="button" data-offkind="time" id="offTimeBtn">Specific time</button>
+          </div>
+        </div>
+
+        <div id="offManualWrap">
+          <div class="field" id="offDaysField">
+            <label>Days off</label>
+            <div id="offDaysList"></div>
+            <button type="button" class="btn btn-sm" id="addOffDayBtn" style="margin-top:2px;">+ Add another day</button>
+          </div>
+          <div class="field" id="offTimesField" style="display:none;">
+            <label>Time off</label>
+            <div id="offTimesList"></div>
+            <button type="button" class="btn btn-sm" id="addOffTimeRowBtn" style="margin-top:2px;">+ Add another time off</button>
+          </div>
+        </div>
+
+        <div id="offBulkWrap" style="display:none;">
+          <div id="offWeekdaysRow" class="field" style="display:none;">
+            <label>Days of week</label>
+            <div class="weekday-picker" id="offWeekdays">
+              ${WEEKDAYS.map((d,i)=>`<label><input type="checkbox" value="${i}"><span>${d}</span></label>`).join('')}
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Starting</label><input type="date" id="offFrom"></div>
+            <div class="field"><label>Until</label><input type="date" id="offTo"></div>
+          </div>
+          <div class="row2" id="offBulkTimeRow" style="display:none;">
+            <div class="field"><label>Start</label><input type="time" id="offStart" value="09:00"></div>
+            <div class="field"><label>End</label><input type="time" id="offEnd" value="17:00"></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="addOffBtn" style="width:100%;">Add time off</button>
       </div>
-      <button class="btn btn-primary" id="addAvailBtn" style="width:100%;">Add to calendar</button>
     </div>
 
     <div class="card pad">
@@ -871,26 +1168,29 @@ function renderTrainerDetail(){
 
   document.getElementById('editTrainerBtn').addEventListener('click', ()=> openTrainerModal(t.id));
 
-  let avType = 'available';
-  document.getElementById('avAvailable').addEventListener('click', function(){ avType='available'; this.classList.add('active'); document.getElementById('avOff').classList.remove('active'); });
-  document.getElementById('avOff').addEventListener('click', function(){ avType='off'; this.classList.add('active'); document.getElementById('avAvailable').classList.remove('active'); });
+  // tab switch between Available / Time off forms
+  document.getElementById('availTabAvailable').addEventListener('click', function(){
+    UI.trainerAvailTab = 'available';
+    this.classList.add('active');
+    document.getElementById('availTabOff').classList.remove('active');
+    document.getElementById('availFormAvailable').style.display = 'block';
+    document.getElementById('availFormOff').style.display = 'none';
+  });
+  document.getElementById('availTabOff').addEventListener('click', function(){
+    UI.trainerAvailTab = 'off';
+    this.classList.add('active');
+    document.getElementById('availTabAvailable').classList.remove('active');
+    document.getElementById('availFormOff').style.display = 'block';
+    document.getElementById('availFormAvailable').style.display = 'none';
+  });
 
-  // recurrence toggle
+  // ---- Available form ----
   document.getElementById('availRepeat').addEventListener('change', function(){
     const weekly = this.value==='weekly';
     document.getElementById('availRangeRow').style.display = weekly ? 'block' : 'none';
     document.getElementById('availSingleDateRow').style.display = weekly ? 'none' : 'block';
   });
-  document.getElementById('availRangeRow').querySelectorAll('[data-weeks]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const fromEl = document.getElementById('availFrom');
-      if(!fromEl.value) fromEl.value = fmtDate(new Date());
-      const weeks = Number(btn.dataset.weeks);
-      document.getElementById('availTo').value = fmtDate(addDays(parseDate(fromEl.value), weeks*7 - 1));
-    });
-  });
 
-  // multiple time blocks per submission
   let blockRows = [{start:'09:00', end:'13:00'}];
   function renderBlockRows(){
     const list = document.getElementById('availBlocksList');
@@ -918,15 +1218,9 @@ function renderTrainerDetail(){
     renderBlockRows();
   });
 
-  document.getElementById('availAllDay').addEventListener('change', function(){
-    document.getElementById('availBlocksWrap').style.display = this.checked ? 'none' : 'block';
-  });
-
   document.getElementById('addAvailBtn').addEventListener('click', ()=>{
     const repeat = document.getElementById('availRepeat').value;
-    const allDay = document.getElementById('availAllDay').checked;
 
-    // Resolve which dates this applies to.
     let dates = [];
     if(repeat==='none'){
       const single = document.getElementById('availSingleDate').value;
@@ -948,22 +1242,16 @@ function renderTrainerDetail(){
       }
     }
 
-    // Resolve which time blocks apply.
-    let blocks;
-    if(allDay){
-      blocks = [{start:'00:00', end:'23:59'}];
-    } else {
-      blocks = blockRows.filter(b=>b.start && b.end);
-      if(blocks.length===0){ alert('Add at least one time block.'); return; }
-      for(const b of blocks){
-        if(b.start>=b.end){ alert('Each time block needs a start time before its end time.'); return; }
-      }
+    const blocks = blockRows.filter(b=>b.start && b.end);
+    if(blocks.length===0){ alert('Add at least one time block.'); return; }
+    for(const b of blocks){
+      if(b.start>=b.end){ alert('Each time block needs a start time before its end time.'); return; }
     }
 
     let count = 0;
     dates.forEach(dateStr=>{
       blocks.forEach(b=>{
-        DATA.trainerAvailability.push({ id:uid(), trainerId:t.id, date:dateStr, start:b.start, end:b.end, type:avType });
+        DATA.trainerAvailability.push({ id:uid(), trainerId:t.id, date:dateStr, start:b.start, end:b.end, type:'available' });
         count++;
       });
     });
@@ -971,6 +1259,148 @@ function renderTrainerDetail(){
     renderTrainerDetail();
     renderSchedule();
     alert(`Added ${count} calendar ${count===1?'entry':'entries'} for ${t.name}.`);
+  });
+
+  // ---- Time off form ----
+  let offKind = 'allday';
+  function syncOffModeVisibility(){
+    const repeat = document.getElementById('offRepeat').value;
+    const manual = repeat==='none';
+    document.getElementById('offManualWrap').style.display = manual ? 'block' : 'none';
+    document.getElementById('offBulkWrap').style.display = manual ? 'none' : 'block';
+    document.getElementById('offWeekdaysRow').style.display = (!manual && repeat==='weekly') ? 'block' : 'none';
+    document.getElementById('offDaysField').style.display = (manual && offKind==='allday') ? 'block' : 'none';
+    document.getElementById('offTimesField').style.display = (manual && offKind==='time') ? 'block' : 'none';
+    document.getElementById('offBulkTimeRow').style.display = (!manual && offKind==='time') ? 'grid' : 'none';
+  }
+  document.getElementById('offAllDayBtn').addEventListener('click', function(){
+    offKind = 'allday';
+    this.classList.add('active');
+    document.getElementById('offTimeBtn').classList.remove('active');
+    syncOffModeVisibility();
+  });
+  document.getElementById('offTimeBtn').addEventListener('click', function(){
+    offKind = 'time';
+    this.classList.add('active');
+    document.getElementById('offAllDayBtn').classList.remove('active');
+    syncOffModeVisibility();
+  });
+  document.getElementById('offRepeat').addEventListener('change', syncOffModeVisibility);
+  syncOffModeVisibility();
+
+  // Manual "days off" list — for Whole day(s) + Does not repeat: several separate days at once.
+  let offDayRows = [{date:''}];
+  function renderOffDayRows(){
+    const list = document.getElementById('offDaysList');
+    list.innerHTML = offDayRows.map((r,i)=>`
+      <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:8px;" data-idx="${i}">
+        <div class="field" style="flex:1; margin-bottom:0;"><input type="date" class="offDayDate" value="${r.date}"></div>
+        <button type="button" class="btn btn-sm removeOffDayBtn" title="Remove this day" ${offDayRows.length<=1 ? 'style="visibility:hidden;"' : ''}>✕</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-idx]').forEach(row=>{
+      const idx = Number(row.dataset.idx);
+      row.querySelector('.offDayDate').addEventListener('input', e=> offDayRows[idx].date = e.target.value);
+      row.querySelector('.removeOffDayBtn').addEventListener('click', ()=>{
+        if(offDayRows.length<=1) return;
+        offDayRows.splice(idx,1);
+        renderOffDayRows();
+      });
+    });
+  }
+  renderOffDayRows();
+  document.getElementById('addOffDayBtn').addEventListener('click', ()=>{
+    offDayRows.push({date:''});
+    renderOffDayRows();
+  });
+
+  // Manual "time off" list — for Specific time + Does not repeat: several different
+  // dates, each with its own time range.
+  let offTimeRows = [{date:'', start:'09:00', end:'17:00'}];
+  function renderOffTimeRows(){
+    const list = document.getElementById('offTimesList');
+    list.innerHTML = offTimeRows.map((r,i)=>`
+      <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:8px;" data-idx="${i}">
+        <div class="field" style="flex:1.3; margin-bottom:0;"><label>Date</label><input type="date" class="offTimeDate" value="${r.date}"></div>
+        <div class="field" style="flex:1; margin-bottom:0;"><label>Start</label><input type="time" class="offTimeStart" value="${r.start}"></div>
+        <div class="field" style="flex:1; margin-bottom:0;"><label>End</label><input type="time" class="offTimeEnd" value="${r.end}"></div>
+        <button type="button" class="btn btn-sm removeOffTimeBtn" title="Remove this time off" ${offTimeRows.length<=1 ? 'style="visibility:hidden;"' : ''}>✕</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-idx]').forEach(row=>{
+      const idx = Number(row.dataset.idx);
+      row.querySelector('.offTimeDate').addEventListener('input', e=> offTimeRows[idx].date = e.target.value);
+      row.querySelector('.offTimeStart').addEventListener('input', e=> offTimeRows[idx].start = e.target.value);
+      row.querySelector('.offTimeEnd').addEventListener('input', e=> offTimeRows[idx].end = e.target.value);
+      row.querySelector('.removeOffTimeBtn').addEventListener('click', ()=>{
+        if(offTimeRows.length<=1) return;
+        offTimeRows.splice(idx,1);
+        renderOffTimeRows();
+      });
+    });
+  }
+  renderOffTimeRows();
+  document.getElementById('addOffTimeRowBtn').addEventListener('click', ()=>{
+    offTimeRows.push({date:'', start:'09:00', end:'17:00'});
+    renderOffTimeRows();
+  });
+
+  document.getElementById('addOffBtn').addEventListener('click', ()=>{
+    const repeat = document.getElementById('offRepeat').value;
+    let count = 0;
+
+    if(repeat==='none'){
+      if(offKind==='allday'){
+        const rows = offDayRows.filter(r=>r.date);
+        if(rows.length===0){ alert('Add at least one day.'); return; }
+        rows.forEach(r=>{
+          DATA.trainerAvailability.push({ id:uid(), trainerId:t.id, date:r.date, start:'00:00', end:'23:59', type:'off' });
+          count++;
+        });
+      } else {
+        const rows = offTimeRows.filter(r=>r.date && r.start && r.end);
+        if(rows.length===0){ alert('Add at least one day with a start and end time.'); return; }
+        for(const r of rows){
+          if(r.start>=r.end){ alert('Each time off block needs a start time before its end time.'); return; }
+        }
+        rows.forEach(r=>{
+          DATA.trainerAvailability.push({ id:uid(), trainerId:t.id, date:r.date, start:r.start, end:r.end, type:'off' });
+          count++;
+        });
+      }
+    } else {
+      const from = document.getElementById('offFrom').value;
+      const to = document.getElementById('offTo').value;
+      if(!from || !to){ alert('Pick a starting date and an end date.'); return; }
+      let d = parseDate(from);
+      const last = parseDate(to);
+      if(d>last){ alert('The starting date must be before the end date.'); return; }
+      const days = repeat==='weekly' ? Array.from(document.querySelectorAll('#offWeekdays input:checked')).map(c=>Number(c.value)) : null;
+      if(repeat==='weekly' && (!days || days.length===0)){ alert('Pick at least one day of the week.'); return; }
+
+      let start, end;
+      if(offKind==='allday'){
+        start = '00:00'; end = '23:59';
+      } else {
+        start = document.getElementById('offStart').value;
+        end = document.getElementById('offEnd').value;
+        if(!start || !end || start>=end){ alert('Start time must be before end time.'); return; }
+      }
+
+      while(d<=last){
+        const wd = (d.getDay()+6)%7;
+        if(!days || days.includes(wd)){
+          DATA.trainerAvailability.push({ id:uid(), trainerId:t.id, date:fmtDate(d), start, end, type:'off' });
+          count++;
+        }
+        d = addDays(d,1);
+      }
+    }
+
+    persist();
+    renderTrainerDetail();
+    renderSchedule();
+    alert(`Added ${count} ${count===1?'entry':'entries'} of time off for ${t.name}.`);
   });
 
   box.querySelectorAll('[data-del-avail]').forEach(btn=>{
@@ -1060,6 +1490,7 @@ document.getElementById('trainerDelete').addEventListener('click', ()=>{
 function typeLabel(type){ return type==='solo' ? '1-on-1 only' : type==='duo' ? '1-on-2 only' : 'Either'; }
 
 function renderClientsTab(){
+  renderSplitTemplateRows();
   const list = document.getElementById('clientList');
   const q = (UI.clientSearch||'').trim().toLowerCase();
   const filtered = q ? DATA.clients.filter(c=>c.name.toLowerCase().includes(q)) : DATA.clients;
@@ -1072,7 +1503,7 @@ function renderClientsTab(){
       <div class="list-item ${c.id===UI.selectedClientId?'selected':''}" data-id="${c.id}">
         <div class="meta">
           <div class="name">${escapeHtml(c.name)}</div>
-          <div class="sub"><span class="badge ${c.type}">${typeLabel(c.type)}</span></div>
+          <div class="sub"><span class="badge ${c.type}">${typeLabel(c.type)}</span>${c.sessionsPerWeek?` · ${c.sessionsPerWeek}x/week`:''}${c.sessionLength===30?' · 30 min':''}</div>
         </div>
       </div>`).join('');
     list.querySelectorAll('.list-item').forEach(el=>{
@@ -1081,6 +1512,33 @@ function renderClientsTab(){
   }
   renderClientDetail();
 }
+
+function renderSplitTemplateRows(){
+  const box = document.getElementById('splitTemplateRows');
+  if(!box) return;
+  const freqs = [2,3];
+  box.innerHTML = freqs.map(f=>{
+    const list = splitForFreq(f);
+    return `<div class="row2" style="grid-template-columns:70px 1fr; align-items:center; margin-bottom:8px;">
+      <label style="margin:0;">${f}x/week</label>
+      <input type="text" data-freq="${f}" value="${escapeHtml(list.join(', '))}" placeholder="e.g. Push, Pull, Legs">
+    </div>`;
+  }).join('');
+}
+document.getElementById('saveSplitsBtn').addEventListener('click', ()=>{
+  const inputs = document.querySelectorAll('#splitTemplateRows input[data-freq]');
+  const next = {};
+  inputs.forEach(inp=>{
+    const freq = inp.dataset.freq;
+    const labels = inp.value.split(',').map(s=>s.trim()).filter(Boolean);
+    if(labels.length) next[freq] = labels;
+  });
+  DATA.splitTemplates = next;
+  persist();
+  renderClientsTab();
+  renderSchedule();
+  alert('Workout splits saved.');
+});
 
 function renderClientDetail(){
   const box = document.getElementById('clientDetail');
@@ -1105,6 +1563,8 @@ function renderClientDetail(){
       </div>
       ${c.notes ? `<div class="hint" style="margin-top:10px; white-space:pre-wrap;">${escapeHtml(c.notes)}</div>` : ''}
       ${(c.excludedTrainerIds||[]).length ? `<div class="hint" style="margin-top:10px;">Won't train with: ${(c.excludedTrainerIds||[]).map(tid=>{ const tt=trainerById(tid); return tt?escapeHtml(tt.name):null; }).filter(Boolean).join(', ')}</div>` : ''}
+      ${c.sessionsPerWeek ? `<div class="hint" style="margin-top:10px;">${c.sessionsPerWeek}x/week · Split: ${clientSplit(c).join(' → ') || '(not set)'}</div>` : ''}
+      <div class="hint" style="margin-top:10px;">Session length: ${c.sessionLength===30?'30 minutes':'1 hour'}</div>
     </div>
 
     <div class="card pad" style="margin-bottom:16px;">
@@ -1191,20 +1651,51 @@ function renderClientDetail(){
 
 document.getElementById('addClientBtn').addEventListener('click', ()=> openClientModal(null));
 document.getElementById('clientSearch').addEventListener('input', function(){ UI.clientSearch = this.value; renderClientsTab(); });
+document.getElementById('clientSessionsSearch').addEventListener('input', function(){ UI.clientSessionsSearch = this.value; renderClientSessionsPanel(); });
 
 function openClientModal(id){
   const c = id ? clientById(id) : null;
   UI.clientModal.editingId = id;
   UI.clientModal.type = c ? c.type : 'either';
   UI.clientModal.excluded = c ? (c.excludedTrainerIds||[]).slice() : [];
+  UI.clientModal.sessionLength = c ? (c.sessionLength||60) : 60;
   document.getElementById('clientModalTitle').textContent = c ? 'Edit client' : 'Add client';
   document.getElementById('clientName').value = c ? c.name : '';
   document.getElementById('clientNotes').value = c ? (c.notes||'') : '';
+  document.getElementById('clientFreq').value = c ? (c.sessionsPerWeek||0) : 0;
+  document.getElementById('clientWorkoutChoice').value = c ? (c.workoutChoice||'') : '';
   document.getElementById('clientDelete').style.display = c ? 'inline-block' : 'none';
   setClientTypeButtons(UI.clientModal.type);
+  syncLenButtons();
   renderExcludedTrainerList();
+  updateClientSplitPreview();
   document.getElementById('clientOverlay').classList.add('open');
 }
+function syncLenButtons(){
+  document.getElementById('lenHour').classList.toggle('active', UI.clientModal.sessionLength===60);
+  document.getElementById('lenHalf').classList.toggle('active', UI.clientModal.sessionLength===30);
+}
+document.getElementById('lenHour').addEventListener('click', ()=>{ UI.clientModal.sessionLength=60; syncLenButtons(); });
+document.getElementById('lenHalf').addEventListener('click', ()=>{ UI.clientModal.sessionLength=30; syncLenButtons(); });
+function updateClientSplitPreview(){
+  const freq = Number(document.getElementById('clientFreq').value);
+  const preview = document.getElementById('clientSplitPreview');
+  const choiceField = document.getElementById('workoutChoiceField');
+  if(freq===0){
+    preview.textContent = 'No weekly session goal — this client won\'t show up in the weekly tracker.';
+    choiceField.style.display = 'none';
+    return;
+  }
+  if(freq===1){
+    preview.textContent = '';
+    choiceField.style.display = 'block';
+    return;
+  }
+  choiceField.style.display = 'none';
+  const split = splitForFreq(freq);
+  preview.textContent = split.length ? `Split: ${split.join(' → ')}` : `No split configured for ${freq}x/week yet — set one below on the Clients tab.`;
+}
+document.getElementById('clientFreq').addEventListener('change', updateClientSplitPreview);
 function renderExcludedTrainerList(){
   const box = document.getElementById('excludedTrainerList');
   if(DATA.trainers.length===0){
@@ -1239,11 +1730,14 @@ document.getElementById('clientSave').addEventListener('click', ()=>{
   if(!name){ alert('Enter a name.'); return; }
   const notes = document.getElementById('clientNotes').value.trim();
   const excludedTrainerIds = UI.clientModal.excluded.slice();
+  const sessionsPerWeek = Number(document.getElementById('clientFreq').value) || 0;
+  const sessionLength = UI.clientModal.sessionLength===30 ? 30 : 60;
+  const workoutChoice = sessionsPerWeek===1 ? document.getElementById('clientWorkoutChoice').value : '';
   if(UI.clientModal.editingId){
     const c = clientById(UI.clientModal.editingId);
-    c.name = name; c.type = UI.clientModal.type; c.notes = notes; c.excludedTrainerIds = excludedTrainerIds;
+    c.name = name; c.type = UI.clientModal.type; c.notes = notes; c.excludedTrainerIds = excludedTrainerIds; c.sessionsPerWeek = sessionsPerWeek; c.sessionLength = sessionLength; c.workoutChoice = workoutChoice;
   } else {
-    const c = { id: uid(), name, type: UI.clientModal.type, notes, excludedTrainerIds };
+    const c = { id: uid(), name, type: UI.clientModal.type, notes, excludedTrainerIds, sessionsPerWeek, sessionLength, workoutChoice };
     DATA.clients.push(c);
     UI.selectedClientId = c.id;
   }
@@ -1277,42 +1771,149 @@ function syncModeButtons(){
   document.getElementById('modeView').classList.toggle('active', !UI.editMode);
   document.getElementById('modeEdit').classList.toggle('active', UI.editMode);
 }
+document.getElementById('toggleBookedBtn').addEventListener('click', ()=>{
+  UI.showBookedSessions = !UI.showBookedSessions;
+  syncBookedToggle();
+  renderGridBody();
+});
+function syncBookedToggle(){
+  const btn = document.getElementById('toggleBookedBtn');
+  btn.textContent = UI.showBookedSessions ? 'Hide booked sessions' : 'Show booked sessions';
+  btn.classList.toggle('active', !UI.showBookedSessions);
+}
 
 function weekDates(){
   return Array.from({length:7}, (_,i)=> addDays(UI.weekStart, i));
 }
 
 function renderLegend(){
-  const bar = document.getElementById('trainerLegend');
-  if(DATA.trainers.length===0){ bar.innerHTML = '<div class="hint">Add trainers to see their availability here.</div>'; return; }
+  const btn = document.getElementById('trainerDropdownBtn');
+  const panel = document.getElementById('trainerDropdownPanel');
+  const allBtn = document.getElementById('toggleAllTrainersBtn');
+  const list = document.getElementById('trainerDropdownList');
+  const hint = document.getElementById('modeHint');
+  const count = UI.visibleTrainers.size;
+
+  if(DATA.trainers.length===0){
+    btn.innerHTML = 'No trainers yet <span class="care">▾</span>';
+    btn.disabled = true;
+    panel.classList.remove('open');
+    list.innerHTML = '<div class="empty">Add a trainer first.</div>';
+    if(hint) hint.textContent = '';
+    return;
+  }
+  btn.disabled = false;
+  btn.innerHTML = `${count>0 ? `${count} trainer${count===1?'':'s'} shown` : 'Select trainers'} <span class="care">▾</span>`;
+  panel.classList.toggle('open', !!UI.trainerDropdownOpen);
+
   const allVisible = DATA.trainers.every(t=>UI.visibleTrainers.has(t.id));
-  let html = `<button class="btn btn-sm" id="toggleAllTrainersBtn">${allVisible ? 'Hide all colors' : 'Show all in color'}</button>`;
-  html += DATA.trainers.map(t=>{
+  allBtn.textContent = allVisible ? 'Hide all' : 'Show all';
+
+  list.innerHTML = DATA.trainers.map(t=>{
     const on = UI.visibleTrainers.has(t.id);
-    const style = on ? `border-color:${t.color}; background:${hexToRgba(t.color,0.14)};` : '';
-    return `<span class="chip ${on?'on':''}" data-id="${t.id}" style="${style}"><span class="swatch" style="background:${t.color}"></span>${escapeHtml(t.name)}</span>`;
+    return `<label><input type="checkbox" value="${t.id}" ${on?'checked':''}><span class="swatch" style="background:${t.color}"></span>${escapeHtml(t.name)}</label>`;
   }).join('');
-  bar.innerHTML = html;
-  document.getElementById('toggleAllTrainersBtn').addEventListener('click', ()=>{
-    if(allVisible){ UI.visibleTrainers.clear(); }
-    else { UI.visibleTrainers = new Set(DATA.trainers.map(t=>t.id)); }
-    renderSchedule();
-  });
-  bar.querySelectorAll('.chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      const id = chip.dataset.id;
-      if(UI.visibleTrainers.has(id)) UI.visibleTrainers.delete(id); else UI.visibleTrainers.add(id);
+  list.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      if(inp.checked) UI.visibleTrainers.add(inp.value); else UI.visibleTrainers.delete(inp.value);
       renderSchedule();
     });
   });
-  const hint = document.getElementById('modeHint');
+
   if(hint){
-    if(UI.visibleTrainers.size===0){
-      hint.textContent = 'Showing an availability heatmap — darker means more trainers are free. Click a trainer above to see their own schedule in their color.';
+    if(count===0){
+      hint.textContent = 'No trainers selected — pick one to see their schedule in color.';
     } else {
       const names = DATA.trainers.filter(t=>UI.visibleTrainers.has(t.id)).map(t=>t.name);
-      hint.textContent = `Showing color-coded schedule for: ${names.join(', ')}. Click a name above to add or remove it, or "Hide all colors" to go back to the heatmap.`;
+      hint.textContent = `Showing: ${names.join(', ')}.`;
     }
+  }
+}
+document.getElementById('toggleAllTrainersBtn').addEventListener('click', ()=>{
+  const allVisible = DATA.trainers.length>0 && DATA.trainers.every(t=>UI.visibleTrainers.has(t.id));
+  if(allVisible) UI.visibleTrainers.clear();
+  else UI.visibleTrainers = new Set(DATA.trainers.map(t=>t.id));
+  renderSchedule();
+});
+document.getElementById('trainerDropdownBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  if(document.getElementById('trainerDropdownBtn').disabled) return;
+  UI.trainerDropdownOpen = !UI.trainerDropdownOpen;
+  renderLegend();
+});
+document.addEventListener('click', (e)=>{
+  if(UI.trainerDropdownOpen && !e.target.closest('#trainerDropdownWrap')){
+    UI.trainerDropdownOpen = false;
+    renderLegend();
+  }
+});
+
+/* ---- Client visibility, grouped by session type ----
+   "1-on-1" is strictly clients set to 1-on-1 only. "1-on-2" also includes
+   "Either" clients, since they genuinely can do a 1-on-2. "Both" is strictly
+   the flexible ("Either") clients.
+   Each button's on/off state is tracked explicitly (UI.clientTypeOn) rather
+   than derived from which clients happen to be visible — otherwise turning on
+   "1-on-2" (which includes Either clients) would make "Both" light up too,
+   since they'd technically all be visible, even though nobody clicked it. */
+function clientsOfType(type){
+  if(type==='duo') return DATA.clients.filter(c=>c.type==='duo' || c.type==='either');
+  return DATA.clients.filter(c=>c.type===type);
+}
+function recomputeVisibleClients(){
+  const set = new Set();
+  ['solo','duo','either'].forEach(type=>{
+    if(UI.clientTypeOn[type]) clientsOfType(type).forEach(c=>set.add(c.id));
+  });
+  UI.visibleClients = set;
+}
+function toggleClientType(type){
+  UI.clientTypeOn[type] = !UI.clientTypeOn[type];
+  recomputeVisibleClients();
+  renderSchedule();
+}
+document.getElementById('toggleSoloClientsBtn').addEventListener('click', ()=> toggleClientType('solo'));
+document.getElementById('toggleDuoClientsBtn').addEventListener('click', ()=> toggleClientType('duo'));
+document.getElementById('toggleEitherClientsBtn').addEventListener('click', ()=> toggleClientType('either'));
+document.getElementById('toggleAllClientsBtn').addEventListener('click', ()=>{
+  const allVisible = DATA.clients.length>0 && DATA.clients.every(c=>UI.visibleClients.has(c.id));
+  if(allVisible){
+    UI.clientTypeOn = { solo:false, duo:false, either:false };
+    UI.visibleClients.clear();
+  } else {
+    UI.clientTypeOn = { solo:true, duo:true, either:true };
+    UI.visibleClients = new Set(DATA.clients.map(c=>c.id));
+  }
+  renderSchedule();
+});
+
+function renderClientLegend(){
+  recomputeVisibleClients();
+  const soloBtn = document.getElementById('toggleSoloClientsBtn');
+  const duoBtn = document.getElementById('toggleDuoClientsBtn');
+  const eitherBtn = document.getElementById('toggleEitherClientsBtn');
+  const allBtn = document.getElementById('toggleAllClientsBtn');
+  const hint = document.getElementById('clientModeHint');
+  if(DATA.clients.length===0){
+    [soloBtn,duoBtn,eitherBtn].forEach(b=>{ b.disabled = true; b.classList.remove('on'); });
+    allBtn.disabled = true;
+    allBtn.textContent = 'Show all';
+    if(hint) hint.textContent = 'Add a client first.';
+    return;
+  }
+  [ [soloBtn,'solo'], [duoBtn,'duo'], [eitherBtn,'either'] ].forEach(([btn,type])=>{
+    const has = clientsOfType(type).length>0;
+    btn.disabled = !has;
+    btn.classList.toggle('on', has && !!UI.clientTypeOn[type]);
+  });
+  allBtn.disabled = false;
+  const allVisible = DATA.clients.every(c=>UI.visibleClients.has(c.id));
+  allBtn.textContent = allVisible ? 'Hide all' : 'Show all';
+  const count = UI.visibleClients.size;
+  if(hint){
+    hint.textContent = count>0
+      ? `Showing availability for ${count} client${count===1?'':'s'}.`
+      : 'Client availability is hidden — pick a category above to show it.';
   }
 }
 
@@ -1329,6 +1930,7 @@ function renderGridHead(){
 function renderGridBody(){
   const body = document.getElementById('gridBody');
   const dates = weekDates();
+  const weekDateSet = new Set(dates.map(fmtDate));
   const todayStr = fmtDate(new Date());
 
   const matchClientAId = document.getElementById('matchClientA') ? document.getElementById('matchClientA').value : '';
@@ -1349,10 +1951,8 @@ function renderGridBody(){
   if(hintBox) hintBox.textContent = excludedNames.length ? `Hiding availability for: ${excludedNames.join(', ')} — set in each client's profile.` : '';
 
   const visible = DATA.trainers.filter(t=>UI.visibleTrainers.has(t.id) && !excludedByMatchClients.has(t.id));
-  const heatTrainers = DATA.trainers.filter(t=>!excludedByMatchClients.has(t.id));
-  const focusMode = visible.length > 0;
-  const railWidth = focusMode ? Math.min(96, Math.max(30, visible.length*24)) : 0;
-  const sessionsLeft = focusMode ? railWidth+8 : 6;
+  const railWidth = visible.length ? Math.min(96, Math.max(30, visible.length*24)) : 0;
+  const sessionsLeft = visible.length ? railWidth+8 : 6;
 
   // time gutter
   let gutterHtml = `<div class="time-gutter-col" style="height:${GRID_HEIGHT}px;">`;
@@ -1367,95 +1967,73 @@ function renderGridBody(){
     const dateStr = fmtDate(d);
     const isToday = dateStr===todayStr;
 
-    let backHtml = '';
-    if(focusMode){
-      // focused rail: a lane per selected trainer, showing their exact color
-      backHtml += `<div class="rail" style="width:${railWidth}px;">`;
-      visible.forEach(t=>{
-        const {base, off} = trainerRawAvailability(t.id, dateStr);
-        let lane = `<div class="lane" title="${escapeHtml(t.name)}">`;
-        base.forEach(iv=>{
-          const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
-          const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
-          if(h>0) lane += `<div class="seg" style="top:${top}px;height:${h}px;background:${t.color};" title="${escapeHtml(t.name)} available ${fmtTimeRange(minToTime(iv[0]),minToTime(iv[1]))}"></div>`;
-        });
-        off.forEach(iv=>{
-          const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
-          const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
-          if(h>0) lane += `<div class="seg off" style="top:${top}px;height:${h}px;" title="${escapeHtml(t.name)} off"></div>`;
-        });
-        lane += `</div>`;
-        backHtml += lane;
-      });
-      backHtml += `</div>`;
-    } else {
-      // heatmap: density of how many trainers are free, regardless of identity
-      const segs = computeHeatSegments(dateStr, heatTrainers);
-      backHtml += `<div class="heat-layer">`;
-      segs.forEach(seg=>{
-        if(seg.count===0) return;
-        const top = Math.max(0,(seg.start-GRID_START))/SLOT*ROW_H;
-        const h = (Math.min(seg.end,GRID_END)-Math.max(seg.start,GRID_START))/SLOT*ROW_H;
-        if(h<=0) return;
-        const frac = heatTrainers.length ? seg.count/heatTrainers.length : 0;
-        const alpha = (0.10 + frac*0.75).toFixed(2);
-        backHtml += `<div class="heat-seg" style="top:${top}px;height:${h}px;background:rgba(46,110,94,${alpha});" title="${seg.count} free: ${seg.names.map(escapeHtml).join(', ')}">${h>=16?`<span class="cnt">${seg.count}</span>`:''}</div>`;
-      });
-      backHtml += `</div>`;
-    }
-
-    // client highlight overlays (dashed = that client is free)
-    let hlHtml = '';
-    [ [document.getElementById('matchClientA'), ''], [document.getElementById('matchClientB'), 'second'] ].forEach(([sel, cls])=>{
-      if(!sel) return;
-      const cid = sel.value;
-      if(!cid) return;
-      const ivs = clientFreeIntervals(cid, dateStr, {});
-      ivs.forEach(iv=>{
+    // rail: a lane per selected trainer, showing their exact color
+    let backHtml = `<div class="rail" style="width:${railWidth}px;">`;
+    visible.forEach(t=>{
+      const {base, off} = trainerRawAvailability(t.id, dateStr);
+      let lane = `<div class="lane" title="${escapeHtml(t.name)}">`;
+      base.forEach(iv=>{
         const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
         const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
-        if(h>0) hlHtml += `<div class="client-hl ${cls}" style="top:${top}px;height:${h}px;"></div>`;
+        if(h>0) lane += `<div class="seg" style="top:${top}px;height:${h}px;background:${t.color};" title="${escapeHtml(t.name)} available ${fmtTimeRange(minToTime(iv[0]),minToTime(iv[1]))}"></div>`;
       });
+      off.forEach(iv=>{
+        const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
+        const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
+        if(h>0) lane += `<div class="seg off" style="top:${top}px;height:${h}px;" title="${escapeHtml(t.name)} off"></div>`;
+      });
+      lane += `</div>`;
+      backHtml += lane;
     });
+    backHtml += `</div>`;
 
-    // solid overlay = actually bookable: selected client(s) free AND at least one eligible trainer free
-    if(matchClientAId){
-      const clA = clientById(matchClientAId);
-      const clB = matchClientBId ? clientById(matchClientBId) : null;
-      const validPair = clA && !(clB && (clA.type==='solo' || clB.type==='solo'));
-      if(validPair){
-        let clientOverlap = clientFreeIntervals(matchClientAId, dateStr);
-        if(clB) clientOverlap = intersectIntervals(clientOverlap, clientFreeIntervals(matchClientBId, dateStr));
-        let trainerUnion = [];
-        heatTrainers.forEach(t=>{ trainerUnion = mergeIntervals(trainerUnion.concat(trainerFreeIntervals(t.id, dateStr))); });
-        const bookable = intersectIntervals(clientOverlap, trainerUnion).filter(iv=>iv[1]-iv[0]>=30);
-        bookable.forEach(iv=>{
-          const top = Math.max(0,(iv[0]-GRID_START))/SLOT*ROW_H;
-          const h = (Math.min(iv[1],GRID_END)-Math.max(iv[0],GRID_START))/SLOT*ROW_H;
-          if(h>0) hlHtml += `<div class="match-hl" style="top:${top}px;height:${h}px;" title="Bookable ${fmtTimeRange(minToTime(iv[0]),minToTime(iv[1]))}">${h>=16?'<span class="lbl">Bookable</span>':''}</div>`;
-        });
-      }
+    // client availability overlays — any client toggled on in the client legend,
+    // laid out side-by-side (like Google Calendar) when their windows overlap.
+    let hlHtml = '';
+    const visibleClientObjs = DATA.clients.filter(c=>UI.visibleClients.has(c.id));
+    if(visibleClientObjs.length){
+      const items = [];
+      visibleClientObjs.forEach(c=>{
+        const ivs = clientFreeIntervals(c.id, dateStr, {});
+        ivs.forEach((iv,idx)=>{ items.push({ id:`${c.id}-${idx}`, start:iv[0], end:iv[1], client:c }); });
+      });
+      items.sort((a,b)=> a.start-b.start);
+      const cols = layoutColumnsGeneric(items);
+      items.forEach(it=>{
+        const top = Math.max(0,(it.start-GRID_START))/SLOT*ROW_H;
+        const h = (Math.min(it.end,GRID_END)-Math.max(it.start,GRID_START))/SLOT*ROW_H;
+        if(h<=0) return;
+        const { col, of } = cols.get(it.id);
+        const widthPct = 100/of;
+        const leftPct = widthPct*col;
+        const color = clientColor(it.client);
+        hlHtml += `<div class="client-avail-box" data-client-id="${it.client.id}" style="top:${top}px;height:${h}px;left:calc(${leftPct}% + 1px);width:calc(${widthPct}% - 3px);border-left-color:${color}; background:${hexToRgba(color,0.14)};" title="${escapeHtml(clientAvailBoxTooltip(it.client, weekDateSet))}">${h>=16?`<span class="cname" style="color:${color};">${escapeHtml(it.client.name)}</span>`:''}</div>`;
+      });
     }
 
-    // session blocks with overlap-column layout
-    const sessions = DATA.sessions.filter(s=>s.date===dateStr).sort((a,b)=>timeToMin(a.start)-timeToMin(b.start));
-    const cols = layoutColumns(sessions);
+    // session blocks with overlap-column layout (same squish algorithm as
+    // the client availability boxes above, so overlapping bookings sit
+    // neatly side by side instead of stacking on top of each other).
     let sessHtml = '';
-    sessions.forEach(s=>{
-      const trainer = trainerById(s.trainerId);
-      const color = trainer ? trainer.color : '#7A8577';
-      const top = Math.max(0,(timeToMin(s.start)-GRID_START))/SLOT*ROW_H;
-      const h = Math.max(18,(timeToMin(s.end)-timeToMin(s.start))/SLOT*ROW_H);
-      const {col, of} = cols.get(s.id);
-      const widthPct = 100/of;
-      const leftPct = widthPct*col;
-      const names = s.clientIds.map(cid=>{ const cc = clientById(cid); return cc ? cc.name : '—'; }).join(' & ');
-      sessHtml += `<div class="sess-block ${s.status==='draft'?'draft':''}" data-id="${s.id}"
-        style="top:${top}px;height:${h}px;left:calc(${leftPct}% + 1px);width:calc(${widthPct}% - 3px);background:${color};">
-        <span class="st">${s.status==='confirmed'?'✓ Confirmed':'Draft'} · ${trainer?escapeHtml(trainer.name):'Unassigned'}</span>
-        <span class="nm">${escapeHtml(names||'No client set')}</span>
-      </div>`;
-    });
+    if(UI.showBookedSessions){
+      const sessions = DATA.sessions.filter(s=>s.date===dateStr).sort((a,b)=>timeToMin(a.start)-timeToMin(b.start));
+      const cols = layoutColumnsGeneric(sessions.map(s=>({ id:s.id, start:timeToMin(s.start), end:timeToMin(s.end) })));
+      sessions.forEach(s=>{
+        const trainer = trainerById(s.trainerId);
+        const color = trainer ? trainer.color : '#7A8577';
+        const top = Math.max(0,(timeToMin(s.start)-GRID_START))/SLOT*ROW_H;
+        const h = Math.max(18,(timeToMin(s.end)-timeToMin(s.start))/SLOT*ROW_H);
+        const {col, of} = cols.get(s.id);
+        const widthPct = 100/of;
+        const leftPct = widthPct*col;
+        const names = s.clientIds.map(cid=>{ const cc = clientById(cid); return cc ? cc.name : '—'; }).join(' & ');
+        sessHtml += `<div class="sess-block ${s.status==='draft'?'draft':''}" data-id="${s.id}"
+          style="top:${top}px;height:${h}px;left:calc(${leftPct}% + 1px);width:calc(${widthPct}% - 3px);background:${color};">
+          <span class="st">${s.status==='confirmed'?'✓ Confirmed':'Draft'} · ${trainer?escapeHtml(trainer.name):'Unassigned'}</span>
+          <span class="nm">${escapeHtml(names||'No client set')}${s.workoutType?` · ${escapeHtml(s.workoutType)}`:''}</span>
+        </div>`;
+      });
+    }
 
     daysHtml += `<div class="day-col ${isToday?'today':''}" style="height:${GRID_HEIGHT}px;" data-date="${dateStr}">
       ${backHtml}
@@ -1467,14 +2045,44 @@ function renderGridBody(){
 
   // click to create
   if(UI.editMode){
+    const clA = matchClientAId ? clientById(matchClientAId) : null;
+    const clB = matchClientBId ? clientById(matchClientBId) : null;
+    const clickDuration = clA ? (clB ? Math.max(clientSessionLength(clA), clientSessionLength(clB)) : clientSessionLength(clA)) : 60;
     body.querySelectorAll('.sessions-area').forEach(area=>{
       area.addEventListener('click', (e)=>{
         if(e.target.closest('.sess-block')) return;
         const rect = area.getBoundingClientRect();
         const y = e.clientY - rect.top;
         let startMin = GRID_START + Math.round((y/ROW_H))*SLOT;
-        startMin = Math.min(startMin, GRID_END-60);
-        openSessionModal(null, area.dataset.date, minToTime(startMin));
+        const clickDate = area.dataset.date;
+
+        // Clicking directly on a client's availability box should pre-fill
+        // that specific client, not whoever is selected in the Match finder.
+        const clickedBox = e.target.closest('.client-avail-box');
+        if(clickedBox){
+          const clickedClient = clientById(clickedBox.dataset.clientId);
+          if(clickedClient){
+            const dur = clientSessionLength(clickedClient);
+            startMin = Math.min(startMin, GRID_END-dur);
+            const prefill = {
+              type: clickedClient.type==='duo' ? 'duo' : 'solo',
+              clientIds: [clickedClient.id],
+              duration: dur,
+              workoutType: workoutLabelForDate(clickedClient, clickDate, weekDateSet) || ''
+            };
+            openSessionModal(null, clickDate, minToTime(startMin), prefill);
+            return;
+          }
+        }
+
+        startMin = Math.min(startMin, GRID_END-clickDuration);
+        const prefill = clA ? {
+          type: clB ? 'duo' : 'solo',
+          clientIds: clB ? [matchClientAId, matchClientBId] : [matchClientAId],
+          duration: clickDuration,
+          workoutType: (UI.matchWorkoutA || UI.matchWorkoutB) || (clB ? (workoutLabelForDate(clA, clickDate, weekDateSet) || workoutLabelForDate(clB, clickDate, weekDateSet)) : workoutLabelForDate(clA, clickDate, weekDateSet)) || ''
+        } : null;
+        openSessionModal(null, clickDate, minToTime(startMin), prefill);
       });
     });
   }
@@ -1486,39 +2094,36 @@ function renderGridBody(){
   });
 }
 
-// Simple greedy overlap-column assignment so concurrent sessions sit side by side.
-function layoutColumns(sessions){
+// Same greedy overlap-column assignment, but for plain {id,start,end} items in
+// minutes (already sorted by start) — used for laying out client availability
+// boxes side by side, Google-Calendar-style, wherever they overlap.
+function layoutColumnsGeneric(items){
   const map = new Map();
-  const active = []; // {end, col}
-  let maxCols = 1;
   const groups = [];
   let currentGroup = [];
   let groupEnd = -Infinity;
-
-  sessions.forEach(s=>{
-    const st = timeToMin(s.start), en = timeToMin(s.end);
-    if(st >= groupEnd && currentGroup.length){
+  items.forEach(it=>{
+    if(it.start >= groupEnd && currentGroup.length){
       groups.push(currentGroup);
       currentGroup = [];
       groupEnd = -Infinity;
     }
-    currentGroup.push(s);
-    groupEnd = Math.max(groupEnd, en);
+    currentGroup.push(it);
+    groupEnd = Math.max(groupEnd, it.end);
   });
   if(currentGroup.length) groups.push(currentGroup);
 
   groups.forEach(group=>{
     const colsEnd = [];
-    group.forEach(s=>{
-      const st = timeToMin(s.start), en = timeToMin(s.end);
+    group.forEach(it=>{
       let placed = false;
       for(let i=0;i<colsEnd.length;i++){
-        if(colsEnd[i] <= st){ colsEnd[i] = en; map.set(s.id, {col:i}); placed = true; break; }
+        if(colsEnd[i] <= it.start){ colsEnd[i] = it.end; map.set(it.id, {col:i}); placed = true; break; }
       }
-      if(!placed){ colsEnd.push(en); map.set(s.id, {col:colsEnd.length-1}); }
+      if(!placed){ colsEnd.push(it.end); map.set(it.id, {col:colsEnd.length-1}); }
     });
     const of = colsEnd.length;
-    group.forEach(s=>{ map.get(s.id).of = of; });
+    group.forEach(it=>{ map.get(it.id).of = of; });
   });
   return map;
 }
@@ -1529,6 +2134,17 @@ function renderWeekLabel(){
 }
 
 /* ---- Match finder ---- */
+function populateWorkoutSelect(selectId, fieldId, client, chosenValue){
+  const field = document.getElementById(fieldId);
+  const sel = document.getElementById(selectId);
+  if(!client){ field.style.display='none'; return ''; }
+  const template = clientSplit(client);
+  if(template.length===0){ field.style.display='none'; return ''; }
+  field.style.display='block';
+  sel.innerHTML = '<option value="">Any (use their next scheduled day)</option>' + template.map(l=>`<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('');
+  sel.value = (chosenValue && template.includes(chosenValue)) ? chosenValue : '';
+  return sel.value;
+}
 function renderMatchFinder(){
   const selA = document.getElementById('matchClientA');
   const selB = document.getElementById('matchClientB');
@@ -1538,10 +2154,17 @@ function renderMatchFinder(){
   const aId = selA.value;
   selB.innerHTML = '<option value="">— none —</option>' + DATA.clients.filter(c=>c.id!==aId).map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
   if(prevB && prevB!==aId) selB.value = prevB;
+  const bId = selB.value;
+
+  UI.matchWorkoutA = populateWorkoutSelect('matchWorkoutA', 'matchWorkoutAField', aId?clientById(aId):null, UI.matchWorkoutA);
+  UI.matchWorkoutB = populateWorkoutSelect('matchWorkoutB', 'matchWorkoutBField', bId?clientById(bId):null, UI.matchWorkoutB);
+
   computeMatches();
 }
 document.getElementById('matchClientA').addEventListener('change', ()=>{ renderMatchFinder(); renderGridBody(); });
-document.getElementById('matchClientB').addEventListener('change', ()=>{ computeMatches(); renderGridBody(); });
+document.getElementById('matchClientB').addEventListener('change', ()=>{ renderMatchFinder(); renderGridBody(); });
+document.getElementById('matchWorkoutA').addEventListener('change', function(){ UI.matchWorkoutA = this.value; computeMatches(); });
+document.getElementById('matchWorkoutB').addEventListener('change', function(){ UI.matchWorkoutB = this.value; computeMatches(); });
 
 function computeMatches(){
   const results = document.getElementById('matchResults');
@@ -1552,10 +2175,21 @@ function computeMatches(){
   const clientB = bId ? clientById(bId) : null;
   if(clientB && clientA.type==='solo'){ results.innerHTML = '<div class="hint">This client is 1-on-1 only — remove client B.</div>'; return; }
   if(clientB && clientB.type==='solo'){ results.innerHTML = '<div class="hint">Client B is 1-on-1 only — cannot pair for a 1-on-2.</div>'; return; }
+  if(clientB && clientSessionLength(clientA)!==clientSessionLength(clientB)){
+    results.innerHTML = `<div class="hint">${escapeHtml(clientA.name)} prefers ${clientSessionLength(clientA)}-min sessions, but ${escapeHtml(clientB.name)} prefers ${clientSessionLength(clientB)}-min — a 30-min client can't be paired with a 60-min client. Pick two clients with the same session length.</div>`;
+    return;
+  }
+  const wantA = UI.matchWorkoutA || '';
+  const wantB = UI.matchWorkoutB || '';
+  if(clientB && wantA && wantB && wantA!==wantB){
+    results.innerHTML = `<div class="hint">You picked <strong>${escapeHtml(wantA)}</strong> for ${escapeHtml(clientA.name)} but <strong>${escapeHtml(wantB)}</strong> for ${escapeHtml(clientB.name)} — pick the same day for both to search for a 1-on-2.</div>`;
+    return;
+  }
 
-  const excludedSet = new Set([...(clientA.excludedTrainerIds||[]), ...(clientB?(clientB.excludedTrainerIds||[]):[])]);
   const dates = weekDates();
   const weekDateSet = new Set(dates.map(fmtDate));
+
+  const excludedSet = new Set([...(clientA.excludedTrainerIds||[]), ...(clientB?(clientB.excludedTrainerIds||[]):[])]);
   const eligibleTrainers = DATA.trainers.filter(t=>!excludedSet.has(t.id)).slice().sort((a,b)=>{
     const empA = (a.employmentType||'full')==='full' ? 0 : 1;
     const empB = (b.employmentType||'full')==='full' ? 0 : 1;
@@ -1567,47 +2201,61 @@ function computeMatches(){
 
   let anyFound = false;
   let html = '';
+  let skippedForWorkout = 0;
+  const requiredMin = clientB ? Math.max(clientSessionLength(clientA), clientSessionLength(clientB)) : clientSessionLength(clientA);
   dates.forEach(d=>{
     const dateStr = fmtDate(d);
+    const labelA = workoutLabelForDate(clientA, dateStr, weekDateSet);
+    const labelB = clientB ? workoutLabelForDate(clientB, dateStr, weekDateSet) : null;
+    if(wantA && labelA && labelA!==wantA){ skippedForWorkout++; return; }
+    if(wantB && labelB && labelB!==wantB){ skippedForWorkout++; return; }
+    if(clientB && labelA && labelB && labelA!==labelB){ skippedForWorkout++; return; }
+    const dayLabel = wantA || wantB || labelA || labelB || null;
+
     let clientOverlap = clientFreeIntervals(aId, dateStr);
     if(clientB) clientOverlap = intersectIntervals(clientOverlap, clientFreeIntervals(bId, dateStr));
     if(clientOverlap.length===0) return;
 
     eligibleTrainers.forEach(t=>{
       const free = trainerFreeIntervals(t.id, dateStr);
-      const overlap = intersectIntervals(clientOverlap, free).filter(iv=>iv[1]-iv[0] >= 30);
+      const overlap = intersectIntervals(clientOverlap, free).filter(iv=>iv[1]-iv[0] >= requiredMin);
       const emp = t.employmentType||'full';
       const hrs = trainerWeekHours(t.id, weekDateSet);
       const target = trainerTargetHours(t);
       overlap.forEach(iv=>{
         anyFound = true;
         html += `<div class="match-slot">
-          <div class="when">${fmtNiceDate(d)} · ${fmtTimeRange(minToTime(iv[0]), minToTime(iv[1]))}</div>
+          <div class="when">${fmtNiceDate(d)} · ${fmtTimeRange(minToTime(iv[0]), minToTime(iv[1]))}${dayLabel?` · <strong>${escapeHtml(dayLabel)}</strong>`:''}</div>
           <div class="trainers"><span class="swatch" style="background:${t.color}; display:inline-block;"></span> ${escapeHtml(t.name)} <span class="badge ${emp}" style="margin-left:4px;">${emp==='full'?'Full-time':'Part-time'}</span> · ${hrs.toFixed(1)}/${target}h this week</div>
-          <button class="btn btn-sm btn-primary" data-book='${JSON.stringify({date:dateStr, start:minToTime(iv[0]), trainerId:t.id, clientIds:clientB?[aId,bId]:[aId], type:clientB?'duo':'solo'})}'>Book this slot</button>
+          <button class="btn btn-sm btn-primary" data-book='${JSON.stringify({date:dateStr, start:minToTime(iv[0]), trainerId:t.id, clientIds:clientB?[aId,bId]:[aId], type:clientB?'duo':'solo', workoutType:dayLabel||'', duration:requiredMin})}'>Book this slot (${requiredMin} min)</button>
         </div>`;
       });
     });
   });
   let excludedNote = excludedSet.size ? `<div class="hint" style="margin-bottom:8px;">Skipping ${excludedSet.size} trainer${excludedSet.size===1?'':'s'} excluded for ${clientB?'these clients':'this client'}.</div>` : '';
+  let workoutNote = skippedForWorkout ? `<div class="hint" style="margin-bottom:8px;">Skipped ${skippedForWorkout} day${skippedForWorkout===1?'':'s'} this week that ${(wantA||wantB)?'didn\'t match the day you picked':"don't line up between the two clients"}.</div>` : '';
 
   if(!anyFound){
     // Diagnose *why* nothing was found so this isn't a dead end.
     const clientHasAvail = DATA.clientAvailability.some(a=>(a.clientId===aId || (bId && a.clientId===bId)) && weekDateSet.has(a.date));
     const anyTrainerHasAvail = eligibleTrainers.some(t=> DATA.trainerAvailability.some(a=>a.trainerId===t.id && weekDateSet.has(a.date) && a.type==='available'));
     let why;
-    if(!clientHasAvail){
+    if(skippedForWorkout>=dates.length && (wantA||wantB)){
+      why = `No day this week matches ${wantA?`"${escapeHtml(wantA)}"`:''}${wantA&&wantB?' / ':''}${wantB?`"${escapeHtml(wantB)}"`:''} for the client(s) picked — try "Any" instead, or another week.`;
+    } else if(clientB && skippedForWorkout>=dates.length){
+      why = `${escapeHtml(clientA.name)} and ${escapeHtml(clientB.name)}'s workout days don't line up this week — adjust their splits, or the days they're available, on the Clients tab.`;
+    } else if(!clientHasAvail){
       why = `${clientB ? 'Neither client has' : escapeHtml(clientA.name)+' has no'} availability logged for this week yet — add it on the Clients tab, or check that you're viewing the right week.`;
     } else if(!anyTrainerHasAvail){
       why = `No trainers have availability entered for this week — add it on the Trainers tab, or check that you're viewing the right week.`;
     } else if(eligibleTrainers.length===0){
       why = `Every trainer is excluded for ${clientB?'these clients':'this client'}.`;
     } else {
-      why = `The times don't overlap this week — try another week, or widen the client's or a trainer's availability.`;
+      why = `The times don't overlap for a full ${requiredMin}-minute session this week — try another week, or widen the client's or a trainer's availability.`;
     }
-    results.innerHTML = excludedNote + `<div class="hint">${why}</div>`;
+    results.innerHTML = excludedNote + workoutNote + `<div class="hint">${why}</div>`;
   } else {
-    results.innerHTML = excludedNote + html;
+    results.innerHTML = excludedNote + workoutNote + html;
   }
   results.querySelectorAll('[data-book]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1649,14 +2297,59 @@ function renderHoursPanel(){
   }).join('');
 }
 
+function renderClientSessionsPanel(){
+  const box = document.getElementById('clientSessionsPanel');
+  if(!box) return;
+  const tracked = DATA.clients.filter(c=>c.sessionsPerWeek>0);
+  if(tracked.length===0){ box.innerHTML = '<div class="hint">Set "Sessions per week" on a client\'s profile to track them here.</div>'; return; }
+  const search = (UI.clientSessionsSearch||'').trim().toLowerCase();
+  const filtered = search ? tracked.filter(c=>c.name.toLowerCase().includes(search)) : tracked;
+  if(filtered.length===0){ box.innerHTML = `<div class="hint">No tracked clients match "${escapeHtml(UI.clientSessionsSearch)}".</div>`; return; }
+  const dates = weekDates();
+  const weekDateSet = new Set(dates.map(fmtDate));
+  const rows = filtered.map(c=>{
+    const sessions = clientWeekSessions(c.id, weekDateSet);
+    const target = c.sessionsPerWeek;
+    const template = clientSplit(c);
+    const done = sessions.map(s=>s.workoutType).filter(Boolean);
+    return { c, count: sessions.length, target, template, done, deficit: target-sessions.length };
+  }).sort((a,b)=> b.deficit - a.deficit);
+  box.innerHTML = rows.map(r=>{
+    const pct = r.target>0 ? Math.min(100, (r.count/r.target)*100) : 100;
+    const short = r.count < r.target;
+    const fullyScheduled = r.template.length ? r.template.every(label=>r.done.includes(label)) : !short;
+    const barColor = short ? 'var(--draft)' : 'var(--confirm)';
+    const splitLine = r.template.length ? r.template.map(label=>{
+      const hit = r.done.includes(label);
+      return `<span class="chip" style="padding:2px 8px; font-size:11px; ${hit?`background:var(--confirm-soft); border-color:var(--confirm); color:var(--confirm);`:''}">${hit?'✓ ':''}${escapeHtml(label)}</span>`;
+    }).join(' ') : '';
+    return `<div style="margin-bottom:13px; ${fullyScheduled?'opacity:0.65;':''}">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:3px; gap:6px;">
+        <span style="display:flex; align-items:center; gap:7px; min-width:0;">
+          <input type="checkbox" disabled ${fullyScheduled?'checked':''} title="${fullyScheduled?'All sessions booked for this week':'Still has sessions to book this week'}" style="width:auto; margin:0; flex:0 0 auto;">
+          <span style="font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${fullyScheduled?'text-decoration:line-through;':''}">${escapeHtml(r.c.name)}</span>
+        </span>
+        <span style="color:var(--ink-muted); flex:0 0 auto;">${r.count} / ${r.target} booked</span>
+      </div>
+      <div style="height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; margin-bottom:6px;">
+        <div style="height:100%; width:${pct}%; background:${barColor};"></div>
+      </div>
+      ${splitLine ? `<div style="display:flex; gap:4px; flex-wrap:wrap;">${splitLine}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function renderSchedule(){
   renderWeekLabel();
   renderLegend();
+  renderClientLegend();
   renderGridHead();
   renderMatchFinder();
   renderGridBody();
   renderHoursPanel();
+  renderClientSessionsPanel();
   syncModeButtons();
+  syncBookedToggle();
 }
 
 /* ---- Session modal ---- */
@@ -1665,21 +2358,93 @@ function openSessionModal(sessionId, date, start, prefill){
   UI.sessionModal.editingId = sessionId || null;
   UI.sessionModal.status = existing ? existing.status : 'draft';
   UI.sessionModal.type = existing ? (existing.clientIds.length>1?'duo':'solo') : (prefill?prefill.type:'solo');
-  UI.sessionModal.trainerId = existing ? existing.trainerId : (prefill?prefill.trainerId:(DATA.trainers[0]?DATA.trainers[0].id:null));
+  UI.sessionModal.trainerId = existing ? existing.trainerId : ((prefill && prefill.trainerId) ? prefill.trainerId : (DATA.trainers[0]?DATA.trainers[0].id:null));
   UI.sessionModal.clientIds = existing ? existing.clientIds.slice() : (prefill?prefill.clientIds.slice():[]);
+  UI.sessionModal.workoutType = existing ? (existing.workoutType||'') : (prefill&&prefill.workoutType ? prefill.workoutType : '');
+  UI.sessionModal.autoDuration = !existing;
+  UI.sessionModal.switchIndex = null;
+  UI.sessionModal.switchSearch = '';
 
   document.getElementById('sessionModalTitle').textContent = existing ? 'Edit session' : 'New session';
   document.getElementById('sessDate').value = existing ? existing.date : (date || fmtDate(new Date()));
-  document.getElementById('sessStart').value = existing ? existing.start : (start || '09:00');
-  document.getElementById('sessEnd').value = existing ? existing.end : minToTime(timeToMin(start||'09:00')+60);
-  document.getElementById('sessDelete').style.display = existing ? 'inline-block' : 'none';
+  const startVal = existing ? existing.start : (start || '09:00');
+  document.getElementById('sessStart').value = startVal;
+  const dur = prefill && prefill.duration ? prefill.duration : currentSessionDuration();
+  document.getElementById('sessEnd').value = existing ? existing.end : minToTime(timeToMin(startVal)+dur);
+  const delBtn = document.getElementById('sessDelete');
+  delBtn.style.display = existing ? 'inline-block' : 'none';
+  delBtn.textContent = 'Delete session';
+  delBtn.dataset.armed = 'false';
 
   renderTrainerSelect();
 
   syncStatusButtons();
   syncTypeButtons();
-  renderClientPickList();
+  renderClientSlots();
+  renderWorkoutField();
   document.getElementById('sessionOverlay').classList.add('open');
+}
+function currentSessionDuration(){
+  const clients = UI.sessionModal.clientIds.map(clientById).filter(Boolean);
+  if(clients.length===0) return 60;
+  return Math.max(...clients.map(clientSessionLength));
+}
+function applyAutoDuration(){
+  if(!UI.sessionModal.autoDuration) return;
+  const start = document.getElementById('sessStart').value;
+  if(!start) return;
+  document.getElementById('sessEnd').value = minToTime(timeToMin(start)+currentSessionDuration());
+}
+document.getElementById('sessStart').addEventListener('input', ()=>{ applyAutoDuration(); renderTrainerSelect(); });
+document.getElementById('sessEnd').addEventListener('input', ()=>{ UI.sessionModal.autoDuration = false; renderTrainerSelect(); });
+document.getElementById('sessDate').addEventListener('change', ()=>{ renderWorkoutField(); renderTrainerSelect(); });
+document.getElementById('sessWorkout').addEventListener('change', function(){ UI.sessionModal.workoutType = this.value; });
+
+function renderWorkoutField(){
+  const field = document.getElementById('workoutTypeField');
+  const sel = document.getElementById('sessWorkout');
+  const hint = document.getElementById('workoutHint');
+  const clients = UI.sessionModal.clientIds.map(clientById).filter(Boolean);
+  // A 1x/week client gets the full set of workout choices to pick from here
+  // (not just whatever single one is set as their default on their profile) —
+  // 2x/3x clients still just get their own team split's labels.
+  const withSplit = clients.filter(c => c.sessionsPerWeek===1 || clientSplit(c).length>0);
+  if(withSplit.length===0){
+    field.style.display = 'none';
+    return;
+  }
+  field.style.display = 'block';
+  const labelSet = [];
+  withSplit.forEach(c=>{
+    const opts = c.sessionsPerWeek===1 ? WORKOUT_CHOICES : clientSplit(c);
+    opts.forEach(l=>{ if(!labelSet.includes(l)) labelSet.push(l); });
+  });
+  sel.innerHTML = labelSet.map(l=>`<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('') + '<option value="">Other / general</option>';
+
+  const dateStr = document.getElementById('sessDate').value || fmtDate(new Date());
+  const wkStart = startOfWeek(parseDate(dateStr));
+  const wkSet = new Set(Array.from({length:7}, (_,i)=>fmtDate(addDays(wkStart,i))));
+  const suggestions = withSplit.map(c=> ({ c, label: workoutLabelForDate(c, dateStr, wkSet) }));
+  let suggested = null, mismatch = false;
+  if(suggestions.length===1){
+    suggested = suggestions[0].label;
+  } else if(suggestions.length===2){
+    if(suggestions[0].label === suggestions[1].label) suggested = suggestions[0].label;
+    else mismatch = true;
+  }
+  if(UI.sessionModal.workoutType && labelSet.includes(UI.sessionModal.workoutType)){
+    sel.value = UI.sessionModal.workoutType;
+  } else if(suggested){
+    sel.value = suggested;
+    UI.sessionModal.workoutType = suggested;
+  } else {
+    UI.sessionModal.workoutType = sel.value;
+  }
+  if(mismatch){
+    hint.textContent = `Heads up — ${escapeHtml(suggestions[0].c.name)} is due for "${suggestions[0].label}" but ${escapeHtml(suggestions[1].c.name)} is due for "${suggestions[1].label}." Pick whichever fits, or choose two clients on the same workout day.`;
+  } else {
+    hint.textContent = `Suggested from their weekly split — change it if this session is out of order.`;
+  }
 }
 function renderTrainerSelect(){
   const trainerSel = document.getElementById('sessTrainer');
@@ -1694,16 +2459,45 @@ function renderTrainerSelect(){
       if(tt) excludedByNames.push(`${tt.name} (${cc.name})`);
     });
   });
-  const eligible = DATA.trainers.filter(t=>!excluded.has(t.id));
+
+  const dateStr = document.getElementById('sessDate').value;
+  const start = document.getElementById('sessStart').value;
+  const end = document.getElementById('sessEnd').value;
+  const excludeSessionId = UI.sessionModal.editingId;
+  // Keep whoever is already booked on this session selectable even if new
+  // time off was added since it was booked — only NEW picks get held to the
+  // strict "actually free" filter.
+  const editingSession = excludeSessionId ? DATA.sessions.find(s=>s.id===excludeSessionId) : null;
+  const keepTrainerId = editingSession ? editingSession.trainerId : null;
+
+  const byClient = DATA.trainers.filter(t=>!excluded.has(t.id));
+  const unavailableNames = [];
+  const eligible = byClient.filter(t=>{
+    if(t.id===keepTrainerId) return true;
+    const free = trainerIsFreeForWindow(t.id, dateStr, start, end, excludeSessionId);
+    if(!free) unavailableNames.push(t.name);
+    return free;
+  });
+
   const prev = UI.sessionModal.trainerId;
   if(eligible.length===0){
-    trainerSel.innerHTML = DATA.trainers.length ? '<option value="">No eligible trainers for these clients</option>' : '<option value="">Add a trainer first</option>';
-    hint.style.display = excludedByNames.length ? 'block' : 'none';
-    hint.textContent = excludedByNames.length ? `Hidden — excluded: ${excludedByNames.join(', ')}` : '';
+    let msg = '';
+    if(DATA.trainers.length===0) msg = 'Add a trainer first';
+    else if(byClient.length===0) msg = 'No eligible trainers for these clients';
+    else msg = 'No trainers free at this time';
+    trainerSel.innerHTML = `<option value="">${msg}</option>`;
+    const reasons = [];
+    if(excludedByNames.length) reasons.push(`Excluded: ${excludedByNames.join(', ')}`);
+    if(unavailableNames.length) reasons.push(`Not free then: ${unavailableNames.join(', ')} — check their time off on the Trainers tab, or pick a different time.`);
+    hint.style.display = reasons.length ? 'block' : 'none';
+    hint.textContent = reasons.join(' ');
     UI.sessionModal.trainerId = null;
     return;
   }
-  trainerSel.innerHTML = eligible.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  trainerSel.innerHTML = eligible.map(t=>{
+    const keptButUnavailable = t.id===keepTrainerId && !trainerIsFreeForWindow(t.id, dateStr, start, end, excludeSessionId);
+    return `<option value="${t.id}">${escapeHtml(t.name)}${keptButUnavailable?' (time off — already booked)':''}</option>`;
+  }).join('');
   if(prev && eligible.some(t=>t.id===prev)){
     trainerSel.value = prev;
     hint.style.display = 'none';
@@ -1713,6 +2507,9 @@ function renderTrainerSelect(){
     if(prev && excluded.has(prev)){
       hint.style.display = 'block';
       hint.textContent = `Switched trainers — the previous pick isn't available for this client.`;
+    } else if(prev){
+      hint.style.display = 'block';
+      hint.textContent = `Switched trainers — the previous pick has time off (or is already booked) during this window.`;
     } else {
       hint.style.display = 'none';
     }
@@ -1726,37 +2523,147 @@ function syncTypeButtons(){
   document.getElementById('segSolo').classList.toggle('active', UI.sessionModal.type==='solo');
   document.getElementById('segDuo').classList.toggle('active', UI.sessionModal.type==='duo');
 }
+// A client set to "1-on-1 only" or "1-on-2 only" can't be switched to the
+// other mode, so grey out that toggle entirely rather than letting the
+// trainer pick it and hit a wall later.
+function updateTypeToggleAvailability(){
+  const soloBtn = document.getElementById('segSolo');
+  const duoBtn = document.getElementById('segDuo');
+  soloBtn.disabled = false;
+  duoBtn.disabled = false;
+  soloBtn.title = '';
+  duoBtn.title = '';
+  const primary = UI.sessionModal.clientIds[0] ? clientById(UI.sessionModal.clientIds[0]) : null;
+  if(primary && primary.type==='solo'){
+    duoBtn.disabled = true;
+    duoBtn.title = `${primary.name} is set to 1-on-1 only`;
+  }
+  if(primary && primary.type==='duo'){
+    soloBtn.disabled = true;
+    soloBtn.title = `${primary.name} is set to 1-on-2 only`;
+  }
+}
 document.getElementById('segDraft').addEventListener('click', ()=>{ UI.sessionModal.status='draft'; syncStatusButtons(); });
 document.getElementById('segConfirmed').addEventListener('click', ()=>{ UI.sessionModal.status='confirmed'; syncStatusButtons(); });
 document.getElementById('segSolo').addEventListener('click', ()=>{
   UI.sessionModal.type='solo';
   if(UI.sessionModal.clientIds.length>1) UI.sessionModal.clientIds = UI.sessionModal.clientIds.slice(0,1);
-  syncTypeButtons(); renderClientPickList();
+  const primary = UI.sessionModal.clientIds[0] ? clientById(UI.sessionModal.clientIds[0]) : null;
+  if(primary && primary.type==='duo') UI.sessionModal.clientIds = [];
+  UI.sessionModal.switchIndex = null;
+  syncTypeButtons(); renderClientSlots(); renderWorkoutField();
 });
 document.getElementById('sessTrainer').addEventListener('change', function(){ UI.sessionModal.trainerId = this.value; document.getElementById('sessTrainerHint').style.display='none'; });
-document.getElementById('segDuo').addEventListener('click', ()=>{ UI.sessionModal.type='duo'; syncTypeButtons(); renderClientPickList(); });
+document.getElementById('segDuo').addEventListener('click', ()=>{
+  UI.sessionModal.type='duo';
+  const primary = UI.sessionModal.clientIds[0] ? clientById(UI.sessionModal.clientIds[0]) : null;
+  if(primary && primary.type==='solo') UI.sessionModal.clientIds = [];
+  UI.sessionModal.switchIndex = null;
+  syncTypeButtons(); renderClientSlots(); renderWorkoutField();
+});
 
-function renderClientPickList(){
-  const box = document.getElementById('clientPickList');
-  document.getElementById('clientPickLabel').textContent = UI.sessionModal.type==='duo' ? 'Clients (choose up to 2)' : 'Client';
-  const eligible = DATA.clients.filter(c => UI.sessionModal.type==='duo' ? c.type!=='solo' : c.type!=='duo');
-  if(eligible.length===0){
-    box.innerHTML = `<div class="hint" style="padding:8px;">No eligible clients for this session type yet.</div>`;
-    return;
+/* Client slot(s): a locked name with a "Switch" link, rather than a big
+   checklist. For a 1-on-1 session there's only ever slot 0, with no option
+   to add anyone else. For a 1-on-2 session, slot 1 is a partner search that
+   only lists other 1-on-2-capable clients who are actually free for the
+   exact date/time currently set on this session. */
+function eligibleForSlot0(){
+  return DATA.clients.filter(c => UI.sessionModal.type==='duo' ? c.type!=='solo' : c.type!=='duo');
+}
+function getSlotCandidates(idx){
+  const search = (UI.sessionModal.switchSearch||'').trim().toLowerCase();
+  const dateStr = document.getElementById('sessDate').value;
+  const start = document.getElementById('sessStart').value;
+  const end = document.getElementById('sessEnd').value;
+  let eligible;
+  if(idx===0){
+    eligible = eligibleForSlot0().filter(c => c.id !== UI.sessionModal.clientIds[1]);
+    const partner = UI.sessionModal.clientIds[1] ? clientById(UI.sessionModal.clientIds[1]) : null;
+    if(partner) eligible = eligible.filter(c => clientSessionLength(c)===clientSessionLength(partner));
+  } else {
+    const primary = clientById(UI.sessionModal.clientIds[0]);
+    eligible = DATA.clients.filter(c => c.id!==UI.sessionModal.clientIds[0] && (c.type==='duo' || c.type==='either'));
+    if(primary) eligible = eligible.filter(c => clientSessionLength(c)===clientSessionLength(primary));
+    eligible = eligible.filter(c => clientIsFreeForWindow(c.id, dateStr, start, end, UI.sessionModal.editingId));
   }
-  box.innerHTML = eligible.map(c=>`
-    <label><input type="${UI.sessionModal.type==='duo'?'checkbox':'radio'}" name="clientPick" value="${c.id}" ${UI.sessionModal.clientIds.includes(c.id)?'checked':''}> ${escapeHtml(c.name)} <span class="badge ${c.type}" style="margin-left:auto;">${typeLabel(c.type)}</span></label>
-  `).join('');
-  box.querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('change', ()=>{
-      if(UI.sessionModal.type==='duo'){
-        const checked = Array.from(box.querySelectorAll('input:checked')).map(i=>i.value);
-        if(checked.length>2){ inp.checked=false; alert('A 1-on-2 session can only have 2 clients.'); return; }
-        UI.sessionModal.clientIds = checked;
-      } else {
-        UI.sessionModal.clientIds = [inp.value];
+  if(search) eligible = eligible.filter(c => c.name.toLowerCase().includes(search));
+  return eligible;
+}
+function renderClientSlots(){
+  updateTypeToggleAvailability();
+  const box = document.getElementById('clientSlotsWrap');
+  document.getElementById('clientPickLabel').textContent = UI.sessionModal.type==='duo' ? 'Clients' : 'Client';
+  const ids = UI.sessionModal.clientIds;
+
+  function shell(idx){
+    if(UI.sessionModal.switchIndex===idx){
+      return `<div class="client-slot switching">
+        <input type="text" id="slotSearch${idx}" placeholder="Search clients…">
+        <div class="slot-candidates" id="slotCandidates${idx}"></div>
+        <button type="button" class="btn btn-sm slot-cancel" data-idx="${idx}">Cancel</button>
+      </div>`;
+    }
+    const client = ids[idx] ? clientById(ids[idx]) : null;
+    if(!client){
+      return `<div class="client-slot empty"><button type="button" class="btn btn-sm slot-add" data-idx="${idx}">+ Add a partner</button></div>`;
+    }
+    return `<div class="client-slot">
+      <div class="slot-info"><span class="slot-name">${escapeHtml(client.name)}</span><span class="badge ${client.type}">${typeLabel(client.type)}</span></div>
+      <button type="button" class="btn btn-sm slot-switch" data-idx="${idx}">Switch</button>
+    </div>`;
+  }
+
+  let html = shell(0);
+  if(UI.sessionModal.type==='duo') html += shell(1);
+  box.innerHTML = html;
+
+  box.querySelectorAll('.slot-switch, .slot-add').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      UI.sessionModal.switchIndex = Number(btn.dataset.idx);
+      UI.sessionModal.switchSearch = '';
+      renderClientSlots();
+    });
+  });
+  box.querySelectorAll('.slot-cancel').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      UI.sessionModal.switchIndex = null;
+      renderClientSlots();
+    });
+  });
+
+  if(UI.sessionModal.switchIndex!=null){
+    const idx = UI.sessionModal.switchIndex;
+    const input = document.getElementById(`slotSearch${idx}`);
+    if(input){
+      input.addEventListener('input', function(){ UI.sessionModal.switchSearch = this.value; refreshSlotCandidates(idx); });
+      input.focus();
+    }
+    refreshSlotCandidates(idx);
+  }
+}
+function refreshSlotCandidates(idx){
+  const container = document.getElementById(`slotCandidates${idx}`);
+  if(!container) return;
+  const candidates = getSlotCandidates(idx);
+  container.innerHTML = candidates.length
+    ? candidates.map(c=>`<div class="slot-candidate" data-idx="${idx}" data-id="${c.id}"><span>${escapeHtml(c.name)}</span><span class="badge ${c.type}">${typeLabel(c.type)}</span></div>`).join('')
+    : `<div class="hint" style="padding:8px;">${idx===1 ? "No other 1-on-2 clients are free for this exact time." : "No matching clients."}</div>`;
+  container.querySelectorAll('.slot-candidate').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const i = Number(el.dataset.idx);
+      UI.sessionModal.clientIds[i] = el.dataset.id;
+      if(i===0 && UI.sessionModal.clientIds[1]){
+        const newPrimary = clientById(el.dataset.id);
+        const partner = clientById(UI.sessionModal.clientIds[1]);
+        if(partner && clientSessionLength(newPrimary)!==clientSessionLength(partner)) UI.sessionModal.clientIds[1] = undefined;
       }
+      UI.sessionModal.switchIndex = null;
+      UI.sessionModal.switchSearch = '';
+      UI.sessionModal.workoutType = '';
       renderTrainerSelect();
+      renderWorkoutField();
+      applyAutoDuration();
+      renderClientSlots();
     });
   });
 }
@@ -1772,25 +2679,187 @@ document.getElementById('sessSave').addEventListener('click', ()=>{
   const trainerId = document.getElementById('sessTrainer').value;
   if(!date || !start || !end || start>=end){ alert('Enter a valid date and time range.'); return; }
   if(!trainerId){ alert('Choose a trainer.'); return; }
-  if(UI.sessionModal.clientIds.length===0){ alert('Choose at least one client.'); return; }
-  if(UI.sessionModal.type==='duo' && UI.sessionModal.clientIds.length!==2){ alert('A 1-on-2 session needs exactly 2 clients.'); return; }
+  const chosenClientIds = UI.sessionModal.clientIds.filter(Boolean);
+  if(chosenClientIds.length===0){ alert('Choose at least one client.'); return; }
+  if(UI.sessionModal.type==='duo' && chosenClientIds.length!==2){ alert('A 1-on-2 session needs exactly 2 clients — use "+ Add a partner" to pick a second one.'); return; }
+  if(UI.sessionModal.type==='duo' && chosenClientIds.length===2){
+    const c0 = clientById(chosenClientIds[0]), c1 = clientById(chosenClientIds[1]);
+    if(c0 && c1 && clientSessionLength(c0)!==clientSessionLength(c1)){
+      alert(`${c0.name} prefers ${clientSessionLength(c0)}-min sessions and ${c1.name} prefers ${clientSessionLength(c1)}-min — a 30-min client can't be paired with a 60-min client.`);
+      return;
+    }
+  }
 
+  const workoutType = UI.sessionModal.workoutType || '';
   if(UI.sessionModal.editingId){
     const s = DATA.sessions.find(x=>x.id===UI.sessionModal.editingId);
-    Object.assign(s, { date, start, end, trainerId, clientIds: UI.sessionModal.clientIds.slice(), status: UI.sessionModal.status });
+    Object.assign(s, { date, start, end, trainerId, clientIds: chosenClientIds, status: UI.sessionModal.status, workoutType });
   } else {
-    DATA.sessions.push({ id: uid(), date, start, end, trainerId, clientIds: UI.sessionModal.clientIds.slice(), status: UI.sessionModal.status });
+    DATA.sessions.push({ id: uid(), date, start, end, trainerId, clientIds: chosenClientIds, status: UI.sessionModal.status, workoutType });
   }
   persist();
   closeSessionModal();
   renderSchedule();
 });
-document.getElementById('sessDelete').addEventListener('click', ()=>{
-  if(!confirm('Delete this session?')) return;
+document.getElementById('sessDelete').addEventListener('click', function(){
+  if(this.dataset.armed !== 'true'){
+    this.dataset.armed = 'true';
+    this.textContent = 'Click again to confirm delete';
+    return;
+  }
   DATA.sessions = DATA.sessions.filter(s=>s.id!==UI.sessionModal.editingId);
   persist();
   closeSessionModal();
   renderSchedule();
+});
+
+/* =======================================================================
+   AVAILABILITY INPUT MODAL — blank calendar, click/drag a block, assign
+   it directly to a client's availability.
+======================================================================= */
+const AvailInput = {
+  weekStart: startOfWeek(new Date()),
+  pending: null,       // {date, start, end} once a block is selected, awaiting a client
+  dragging: false,
+  dragDate: null,
+  dragStartMin: null,
+  dragBox: null         // the live preview element while dragging
+};
+
+document.getElementById('openAvailInputBtn').addEventListener('click', ()=>{
+  AvailInput.weekStart = startOfWeek(new Date());
+  AvailInput.pending = null;
+  document.getElementById('availAssignPanel').style.display = 'none';
+  renderAvailInputModal();
+  document.getElementById('availInputOverlay').classList.add('open');
+});
+document.getElementById('availInputClose').addEventListener('click', ()=>{
+  document.getElementById('availInputOverlay').classList.remove('open');
+  renderSchedule();
+  renderClientsTab();
+});
+document.getElementById('availPrevWeek').addEventListener('click', ()=>{ AvailInput.weekStart = addDays(AvailInput.weekStart, -7); renderAvailInputModal(); });
+document.getElementById('availNextWeek').addEventListener('click', ()=>{ AvailInput.weekStart = addDays(AvailInput.weekStart, 7); renderAvailInputModal(); });
+document.getElementById('availTodayBtn').addEventListener('click', ()=>{ AvailInput.weekStart = startOfWeek(new Date()); renderAvailInputModal(); });
+
+function availWeekDates(){
+  return Array.from({length:7}, (_,i)=> addDays(AvailInput.weekStart, i));
+}
+
+function renderAvailInputModal(){
+  const dates = availWeekDates();
+  document.getElementById('availWkLabel').textContent = fmtNiceDate(dates[0]).replace(/^[A-Za-z]+, /,'') + ' – ' + fmtNiceDate(dates[6]).replace(/^[A-Za-z]+, /,'');
+
+  const head = document.getElementById('availGridHead');
+  const todayStr = fmtDate(new Date());
+  head.innerHTML = `<div class="time-gutter"></div>` + dates.map(d=>{
+    const isToday = fmtDate(d)===todayStr;
+    return `<div class="day-head ${isToday?'today':''}"><div class="dname">${WEEKDAYS[(d.getDay()+6)%7]}</div><div class="dnum">${d.getMonth()+1}/${d.getDate()}</div></div>`;
+  }).join('');
+
+  const body = document.getElementById('availGridBody');
+  let gutterHtml = `<div class="time-gutter-col" style="height:${GRID_HEIGHT}px;">`;
+  for(let m=GRID_START; m<=GRID_END; m+=60){
+    const top = ((m-GRID_START)/SLOT)*ROW_H;
+    gutterHtml += `<div class="tlabel" style="top:${top}px;">${fmtTime12(minToTime(m))}</div>`;
+  }
+  gutterHtml += `</div>`;
+
+  let daysHtml = '';
+  dates.forEach(d=>{
+    const dateStr = fmtDate(d);
+    const isToday = dateStr===todayStr;
+    const entries = DATA.clientAvailability.filter(a=>a.date===dateStr);
+    let existingHtml = '';
+    entries.forEach(a=>{
+      const c = clientById(a.clientId);
+      if(!c) return;
+      const color = clientColor(c);
+      const top = Math.max(0,(timeToMin(a.start)-GRID_START))/SLOT*ROW_H;
+      const h = (Math.min(timeToMin(a.end),GRID_END)-Math.max(timeToMin(a.start),GRID_START))/SLOT*ROW_H;
+      if(h>0) existingHtml += `<div class="avail-existing-box" style="top:${top}px;height:${h}px;background:${hexToRgba(color,0.35)};" title="${escapeHtml(c.name)} ${fmtTimeRange(a.start,a.end)}"><span class="cname" style="color:${color};">${escapeHtml(c.name)}</span></div>`;
+    });
+    daysHtml += `<div class="day-col ${isToday?'today':''}" style="height:${GRID_HEIGHT}px;">
+      <div class="avail-select-col" data-date="${dateStr}">${existingHtml}</div>
+    </div>`;
+  });
+  body.innerHTML = gutterHtml + daysHtml;
+
+  body.querySelectorAll('.avail-select-col').forEach(col=>{
+    col.addEventListener('mousedown', (e)=>{
+      if(e.target.closest('.avail-existing-box')) { /* still allow drag starting over an existing box */ }
+      const rect = col.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      let startMin = GRID_START + Math.round(y/ROW_H)*SLOT;
+      startMin = Math.min(startMin, GRID_END-SLOT);
+      AvailInput.dragging = true;
+      AvailInput.dragDate = col.dataset.date;
+      AvailInput.dragStartMin = startMin;
+      const box = document.createElement('div');
+      box.className = 'avail-drag-box';
+      box.style.top = ((startMin-GRID_START)/SLOT*ROW_H)+'px';
+      box.style.height = ROW_H+'px';
+      col.appendChild(box);
+      AvailInput.dragBox = box;
+      e.preventDefault();
+    });
+  });
+}
+document.addEventListener('mousemove', availOnDragMove);
+document.addEventListener('mouseup', availOnDragEnd);
+
+function availOnDragMove(e){
+  if(!AvailInput.dragging || !AvailInput.dragBox) return;
+  const col = document.querySelector(`.avail-select-col[data-date="${AvailInput.dragDate}"]`);
+  if(!col) return;
+  const rect = col.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  let curMin = GRID_START + Math.round(y/ROW_H)*SLOT;
+  curMin = Math.max(GRID_START+SLOT, Math.min(curMin, GRID_END));
+  const startMin = Math.min(AvailInput.dragStartMin, curMin-SLOT);
+  const endMin = Math.max(AvailInput.dragStartMin+SLOT, curMin);
+  AvailInput.dragBox.style.top = ((startMin-GRID_START)/SLOT*ROW_H)+'px';
+  AvailInput.dragBox.style.height = ((endMin-startMin)/SLOT*ROW_H)+'px';
+  AvailInput.dragBox.dataset.start = startMin;
+  AvailInput.dragBox.dataset.end = endMin;
+}
+
+function availOnDragEnd(){
+  if(!AvailInput.dragging) return;
+  AvailInput.dragging = false;
+  const box = AvailInput.dragBox;
+  if(!box) return;
+  const startMin = Number(box.dataset.start != null ? box.dataset.start : AvailInput.dragStartMin);
+  const endMin = Number(box.dataset.end != null ? box.dataset.end : AvailInput.dragStartMin+SLOT);
+  AvailInput.pending = { date: AvailInput.dragDate, start: minToTime(startMin), end: minToTime(endMin) };
+  openAvailAssignPanel();
+}
+
+function openAvailAssignPanel(){
+  const p = AvailInput.pending;
+  if(!p) return;
+  const panel = document.getElementById('availAssignPanel');
+  const when = document.getElementById('availAssignWhen');
+  when.textContent = `${fmtNiceDate(parseDate(p.date))} · ${fmtTimeRange(p.start, p.end)}`;
+  const sel = document.getElementById('availAssignClient');
+  sel.innerHTML = DATA.clients.length ? DATA.clients.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('') : '<option value="">Add a client first</option>';
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+document.getElementById('availAssignAdd').addEventListener('click', ()=>{
+  const p = AvailInput.pending;
+  const clientId = document.getElementById('availAssignClient').value;
+  if(!p || !clientId) return;
+  DATA.clientAvailability.push({ id: uid(), clientId, date: p.date, start: p.start, end: p.end });
+  persist();
+  AvailInput.pending = null;
+  document.getElementById('availAssignPanel').style.display = 'none';
+  renderAvailInputModal();
+});
+document.getElementById('availAssignCancel').addEventListener('click', ()=>{
+  AvailInput.pending = null;
+  document.getElementById('availAssignPanel').style.display = 'none';
+  renderAvailInputModal();
 });
 
 /* =======================================================================
