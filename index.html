@@ -314,6 +314,7 @@
       <button id="btnExport">Export backup (.json)</button>
       <button id="btnImport">Import backup</button>
       <input type="file" id="fileImport" accept="application/json" style="display:none;">
+      <button id="btnGenTestData" style="margin-top:8px;">Generate test data</button>
       <div class="note">Everything is saved in this browser only. Export a backup before clearing browser data or switching computers.</div>
     </div>
   </div>
@@ -555,7 +556,7 @@
           <option value="Pull">Pull</option>
           <option value="Legs">Legs</option>
           <option value="Pull/Push">Pull/Push</option>
-          <option value="Legs/Overhead Press">Legs/Overhead Press</option>
+          <option value="Legs/OH">Legs/OH</option>
         </select>
       </div>
       <div class="field">
@@ -657,7 +658,8 @@ const Store = {
   blank(){
     return {
       trainers: [], trainerAvailability: [], clients: [], clientAvailability: [], sessions: [],
-      splitTemplates: { '2': ['Pull/Push','Legs/Overhead Press'], '3': ['Push','Pull','Legs'] }
+      splitTemplates: { '2': ['Pull/Push','Legs/OH'], '3': ['Push','Pull','Legs'] },
+      clientWeekNotes: []
     };
   }
 };
@@ -676,9 +678,20 @@ function normalizeData(){
     if(c.workoutChoice==null) c.workoutChoice = '';
   });
   if(!DATA.splitTemplates) DATA.splitTemplates = Store.blank().splitTemplates;
+  if(!DATA.clientWeekNotes) DATA.clientWeekNotes = [];
+
+  // Migrate the old "Legs/Overhead Press" label (now shortened to "Legs/OH")
+  // anywhere it might already be saved.
+  const renameLabel = s => s==='Legs/Overhead Press' ? 'Legs/OH' : s;
+  Object.keys(DATA.splitTemplates||{}).forEach(k=>{
+    DATA.splitTemplates[k] = DATA.splitTemplates[k].map(renameLabel);
+  });
+  DATA.clients.forEach(c=>{ if(c.workoutChoice) c.workoutChoice = renameLabel(c.workoutChoice); });
+  DATA.sessions.forEach(s=>{ if(s.workoutType) s.workoutType = renameLabel(s.workoutType); });
 }
 normalizeData();
 function persist(){ Store.save(DATA); }
+persist(); // make sure any migration performed above is saved back to storage
 
 /* ---------------------------------------------------------------------
    UTIL
@@ -797,7 +810,7 @@ const TRAINER_COLORS = ['#2E6E5E','#B5533C','#4C6FB1','#C98A3B','#7C5CBF','#3E8E
 const CLIENT_COLORS = ['#39508F','#B5533C','#2E6E5E','#8C5A1E','#7C5CBF','#3E8E8E','#A6494F','#5B7B3F','#8C6A46','#4A5A8C','#B08A2E','#5F7A93'];
 // The five standard workout types offered wherever a workout picker shows up
 // (client profile's 1x/week choice, and the session modal's Workout field).
-const WORKOUT_CHOICES = ['Push','Pull','Legs','Pull/Push','Legs/Overhead Press'];
+const WORKOUT_CHOICES = ['Push','Pull','Legs','Pull/Push','Legs/OH'];
 function clientColor(client){
   const idx = DATA.clients.findIndex(c=>c.id===client.id);
   return CLIENT_COLORS[(idx<0?0:idx) % CLIENT_COLORS.length];
@@ -949,6 +962,24 @@ function stillNeededWorkouts(client, weekDateSet){
   const bookedLabels = clientWeekSessions(client.id, weekDateSet).map(s=>s.workoutType).filter(Boolean);
   return template.filter(label=> !bookedLabels.includes(label));
 }
+// A quick per-week sticky note for a client (e.g. "only legs this week") —
+// keyed by that week's Monday date, so it naturally starts blank each week.
+function getClientWeekNote(clientId, weekStartStr){
+  const entry = DATA.clientWeekNotes.find(n=>n.clientId===clientId && n.weekStart===weekStartStr);
+  return entry ? entry.note : '';
+}
+function setClientWeekNote(clientId, weekStartStr, note){
+  const trimmed = note.trim();
+  const entry = DATA.clientWeekNotes.find(n=>n.clientId===clientId && n.weekStart===weekStartStr);
+  if(!trimmed){
+    if(entry) DATA.clientWeekNotes = DATA.clientWeekNotes.filter(n=>n!==entry);
+  } else if(entry){
+    entry.note = note;
+  } else {
+    DATA.clientWeekNotes.push({ id: uid(), clientId, weekStart: weekStartStr, note });
+  }
+  persist();
+}
 function clientAvailBoxTooltip(client, weekDateSet){
   let text = `${client.name} (${shortTypeLabel(client.type)})`;
   if(client.sessionsPerWeek>0){
@@ -1005,6 +1036,106 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
   };
   reader.readAsText(file);
   e.target.value = '';
+});
+
+/* ---------------------------------------------------------------------
+   TEST DATA GENERATOR — adds a realistic-ish batch of trainers and clients
+   (with a week's worth of availability) purely for stress-testing the
+   pairing/matching workflow. Additive — doesn't touch existing data.
+--------------------------------------------------------------------- */
+function rndInt(n){ return Math.floor(Math.random()*n); }
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = rndInt(i+1); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+function generateTestData(){
+  const FIRST_NAMES = ['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','William','Elizabeth','David','Barbara','Richard','Susan','Joseph','Jessica','Thomas','Sarah','Charles','Karen','Christopher','Nancy','Daniel','Lisa','Matthew','Betty','Anthony','Margaret','Mark','Sandra','Paul','Ashley','Steven','Kimberly','Andrew','Emily','Kenneth','Donna','George','Michelle','Joshua','Carol','Kevin','Amanda','Brian','Melissa','Edward','Deborah','Ronald','Stephanie','Jason','Rebecca','Jeff','Laura','Ryan','Sharon','Jacob','Cynthia','Gary','Kathleen','Nicholas','Amy','Eric','Angela','Jonathan','Shirley','Stephen','Anna','Larry','Brenda','Justin','Pamela','Scott','Emma','Brandon','Nicole','Benjamin','Helen','Samuel','Samantha','Gregory','Katherine','Alexander','Christine','Frank','Debra','Raymond','Rachel','Jack','Carolyn','Dennis','Janet','Jerry','Maria','Tyler','Heather','Aaron','Diane'];
+  const LAST_NAMES = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores','Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts'];
+  const usedNames = new Set();
+  function randomName(){
+    let name, tries=0;
+    do{ name = FIRST_NAMES[rndInt(FIRST_NAMES.length)] + ' ' + LAST_NAMES[rndInt(LAST_NAMES.length)]; tries++; }
+    while(usedNames.has(name) && tries<50);
+    usedNames.add(name);
+    return name;
+  }
+
+  const weekStart = startOfWeek(new Date());
+  const weekDateStrs = Array.from({length:7}, (_,i)=> fmtDate(addDays(weekStart, i)));
+
+  // --- Trainers ---
+  const TRAINER_COUNT = 10;
+  const trainerPatterns = [
+    [['09:00','13:00']],
+    [['13:00','18:00']],
+    [['09:00','12:00'],['16:00','20:00']],
+    [['06:00','10:00']],
+    [['10:00','19:00']],
+    [['07:00','11:00'],['15:00','19:00']]
+  ];
+  const newTrainers = [];
+  for(let i=0;i<TRAINER_COUNT;i++){
+    const emp = i<7 ? 'full' : 'part';
+    const target = emp==='full' ? 28+rndInt(13) : 10+rndInt(11);
+    const trainer = { id: uid(), name: randomName(), color: TRAINER_COLORS[i % TRAINER_COLORS.length], employmentType: emp, targetHours: target };
+    DATA.trainers.push(trainer);
+    newTrainers.push(trainer);
+    const workDayIdx = shuffleArr([0,1,2,3,4,5,6]).slice(0, 4+rndInt(3));
+    workDayIdx.forEach(di=>{
+      const pat = trainerPatterns[rndInt(trainerPatterns.length)];
+      pat.forEach(([s,e])=>{
+        DATA.trainerAvailability.push({ id: uid(), trainerId: trainer.id, date: weekDateStrs[di], start:s, end:e, type:'available' });
+      });
+    });
+    if(rndInt(4)===0){
+      const offDay = weekDateStrs[rndInt(7)];
+      DATA.trainerAvailability.push({ id: uid(), trainerId: trainer.id, date: offDay, start:'00:00', end:'23:59', type:'off' });
+    }
+  }
+
+  // --- Clients ---
+  const CLIENT_COUNT = 150;
+  let newClientCount = 0;
+  for(let i=0;i<CLIENT_COUNT;i++){
+    const freqRoll = rndInt(100);
+    const sessionsPerWeek = freqRoll<45 ? 2 : freqRoll<75 ? 3 : freqRoll<95 ? 1 : 0;
+    const typeRoll = rndInt(100);
+    const type = typeRoll<40 ? 'solo' : typeRoll<70 ? 'duo' : 'either';
+    const sessionLength = rndInt(100)<80 ? 60 : 30;
+    const workoutChoice = sessionsPerWeek===1 ? WORKOUT_CHOICES[rndInt(WORKOUT_CHOICES.length)] : '';
+    const client = { id: uid(), name: randomName(), type, sessionsPerWeek, sessionLength, workoutChoice, notes:'', excludedTrainerIds: [] };
+    DATA.clients.push(client);
+    newClientCount++;
+
+    const numWindows = sessionsPerWeek>0 ? Math.min(7, sessionsPerWeek+1+rndInt(2)) : 2+rndInt(2);
+    const days = shuffleArr([0,1,2,3,4,5,6]).slice(0, numWindows).sort((a,b)=>a-b);
+    days.forEach(di=>{
+      const startHour = 6+rndInt(14);
+      const startMinOpt = [0,30][rndInt(2)];
+      const startTotal = Math.min(startHour*60+startMinOpt, 20*60);
+      const duration = 60+rndInt(4)*30;
+      const endTotal = Math.min(startTotal+duration, 21*60);
+      DATA.clientAvailability.push({ id: uid(), clientId: client.id, date: weekDateStrs[di], start: minToTime(startTotal), end: minToTime(Math.max(endTotal,startTotal+60)) });
+    });
+  }
+
+  persist();
+  return { trainers: newTrainers.length, clients: newClientCount };
+}
+document.getElementById('btnGenTestData').addEventListener('click', function(){
+  if(this.dataset.armed !== 'true'){
+    this.dataset.armed = 'true';
+    this.textContent = 'Click again to add 10 trainers + 150 clients';
+    return;
+  }
+  this.dataset.armed = 'false';
+  this.textContent = 'Generate test data';
+  const result = generateTestData();
+  UI.selectedTrainerId = DATA.trainers.length ? DATA.trainers[0].id : null;
+  UI.selectedClientId = DATA.clients.length ? DATA.clients[0].id : null;
+  renderAll();
+  alert(`Added ${result.trainers} trainers and ${result.clients} clients with a week of sample availability (this week: ${weekDates()[0].toLocaleDateString()} – ${weekDates()[6].toLocaleDateString()}). Head to the Schedule tab and try the Match finder to pair people up.`);
 });
 
 /* =======================================================================
@@ -2307,6 +2438,7 @@ function renderClientSessionsPanel(){
   if(filtered.length===0){ box.innerHTML = `<div class="hint">No tracked clients match "${escapeHtml(UI.clientSessionsSearch)}".</div>`; return; }
   const dates = weekDates();
   const weekDateSet = new Set(dates.map(fmtDate));
+  const weekStartStr = fmtDate(UI.weekStart);
   const rows = filtered.map(c=>{
     const sessions = clientWeekSessions(c.id, weekDateSet);
     const target = c.sessionsPerWeek;
@@ -2323,6 +2455,7 @@ function renderClientSessionsPanel(){
       const hit = r.done.includes(label);
       return `<span class="chip" style="padding:2px 8px; font-size:11px; ${hit?`background:var(--confirm-soft); border-color:var(--confirm); color:var(--confirm);`:''}">${hit?'✓ ':''}${escapeHtml(label)}</span>`;
     }).join(' ') : '';
+    const note = getClientWeekNote(r.c.id, weekStartStr);
     return `<div style="margin-bottom:13px; ${fullyScheduled?'opacity:0.65;':''}">
       <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:3px; gap:6px;">
         <span style="display:flex; align-items:center; gap:7px; min-width:0;">
@@ -2334,9 +2467,17 @@ function renderClientSessionsPanel(){
       <div style="height:6px; background:var(--surface-alt); border-radius:4px; overflow:hidden; margin-bottom:6px;">
         <div style="height:100%; width:${pct}%; background:${barColor};"></div>
       </div>
-      ${splitLine ? `<div style="display:flex; gap:4px; flex-wrap:wrap;">${splitLine}</div>` : ''}
+      <div style="display:flex; align-items:center; gap:6px;">
+        ${splitLine ? `<div style="display:flex; gap:4px; flex-wrap:wrap; flex:1 1 auto; min-width:0;">${splitLine}</div>` : '<div style="flex:1 1 auto;"></div>'}
+        <input type="text" class="week-note-input" data-client-id="${r.c.id}" value="${escapeHtml(note)}" placeholder="Note…" title="Quick note for this week (e.g. &quot;only legs&quot;)" style="font-size:11px; padding:4px 7px; flex:0 0 170px; width:170px;">
+      </div>
     </div>`;
   }).join('');
+  box.querySelectorAll('.week-note-input').forEach(inp=>{
+    inp.addEventListener('input', function(){
+      setClientWeekNote(this.dataset.clientId, weekStartStr, this.value);
+    });
+  });
 }
 
 function renderSchedule(){
