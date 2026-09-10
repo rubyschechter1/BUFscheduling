@@ -324,7 +324,6 @@
       <button id="btnExport">Export backup (.json)</button>
       <button id="btnImport">Import backup</button>
       <input type="file" id="fileImport" accept="application/json" style="display:none;">
-      <button id="btnGenTestData" style="margin-top:8px;">Generate test data</button>
       <div class="note">Everything is saved in this browser only. Export a backup before clearing browser data or switching computers.</div>
     </div>
   </div>
@@ -1096,106 +1095,6 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
   };
   reader.readAsText(file);
   e.target.value = '';
-});
-
-/* ---------------------------------------------------------------------
-   TEST DATA GENERATOR — adds a realistic-ish batch of trainers and clients
-   (with a week's worth of availability) purely for stress-testing the
-   pairing/matching workflow. Additive — doesn't touch existing data.
---------------------------------------------------------------------- */
-function rndInt(n){ return Math.floor(Math.random()*n); }
-function shuffleArr(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){ const j = rndInt(i+1); [a[i],a[j]] = [a[j],a[i]]; }
-  return a;
-}
-function generateTestData(){
-  const FIRST_NAMES = ['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','William','Elizabeth','David','Barbara','Richard','Susan','Joseph','Jessica','Thomas','Sarah','Charles','Karen','Christopher','Nancy','Daniel','Lisa','Matthew','Betty','Anthony','Margaret','Mark','Sandra','Paul','Ashley','Steven','Kimberly','Andrew','Emily','Kenneth','Donna','George','Michelle','Joshua','Carol','Kevin','Amanda','Brian','Melissa','Edward','Deborah','Ronald','Stephanie','Jason','Rebecca','Jeff','Laura','Ryan','Sharon','Jacob','Cynthia','Gary','Kathleen','Nicholas','Amy','Eric','Angela','Jonathan','Shirley','Stephen','Anna','Larry','Brenda','Justin','Pamela','Scott','Emma','Brandon','Nicole','Benjamin','Helen','Samuel','Samantha','Gregory','Katherine','Alexander','Christine','Frank','Debra','Raymond','Rachel','Jack','Carolyn','Dennis','Janet','Jerry','Maria','Tyler','Heather','Aaron','Diane'];
-  const LAST_NAMES = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores','Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts'];
-  const usedNames = new Set();
-  function randomName(){
-    let name, tries=0;
-    do{ name = FIRST_NAMES[rndInt(FIRST_NAMES.length)] + ' ' + LAST_NAMES[rndInt(LAST_NAMES.length)]; tries++; }
-    while(usedNames.has(name) && tries<50);
-    usedNames.add(name);
-    return name;
-  }
-
-  const weekStart = startOfWeek(new Date());
-  const weekDateStrs = Array.from({length:7}, (_,i)=> fmtDate(addDays(weekStart, i)));
-
-  // --- Trainers ---
-  const TRAINER_COUNT = 10;
-  const trainerPatterns = [
-    [['09:00','13:00']],
-    [['13:00','18:00']],
-    [['09:00','12:00'],['16:00','20:00']],
-    [['06:00','10:00']],
-    [['10:00','19:00']],
-    [['07:00','11:00'],['15:00','19:00']]
-  ];
-  const newTrainers = [];
-  for(let i=0;i<TRAINER_COUNT;i++){
-    const emp = i<7 ? 'full' : 'part';
-    const target = emp==='full' ? 28+rndInt(13) : 10+rndInt(11);
-    const trainer = { id: uid(), name: randomName(), color: TRAINER_COLORS[i % TRAINER_COLORS.length], employmentType: emp, targetHours: target };
-    DATA.trainers.push(trainer);
-    newTrainers.push(trainer);
-    const workDayIdx = shuffleArr([0,1,2,3,4,5,6]).slice(0, 4+rndInt(3));
-    workDayIdx.forEach(di=>{
-      const pat = trainerPatterns[rndInt(trainerPatterns.length)];
-      pat.forEach(([s,e])=>{
-        DATA.trainerAvailability.push({ id: uid(), trainerId: trainer.id, date: weekDateStrs[di], start:s, end:e, type:'available' });
-      });
-    });
-    if(rndInt(4)===0){
-      const offDay = weekDateStrs[rndInt(7)];
-      DATA.trainerAvailability.push({ id: uid(), trainerId: trainer.id, date: offDay, start:'00:00', end:'23:59', type:'off' });
-    }
-  }
-
-  // --- Clients ---
-  const CLIENT_COUNT = 150;
-  let newClientCount = 0;
-  for(let i=0;i<CLIENT_COUNT;i++){
-    const freqRoll = rndInt(100);
-    const sessionsPerWeek = freqRoll<45 ? 2 : freqRoll<75 ? 3 : freqRoll<95 ? 1 : 0;
-    const typeRoll = rndInt(100);
-    const type = typeRoll<40 ? 'solo' : typeRoll<70 ? 'duo' : 'either';
-    const sessionLength = rndInt(100)<80 ? 60 : 30;
-    const workoutChoice = sessionsPerWeek===1 ? WORKOUT_CHOICES[rndInt(WORKOUT_CHOICES.length)] : '';
-    const client = { id: uid(), name: randomName(), type, sessionsPerWeek, sessionLength, workoutChoice, notes:'', excludedTrainerIds: [] };
-    DATA.clients.push(client);
-    newClientCount++;
-
-    const numWindows = sessionsPerWeek>0 ? Math.min(7, sessionsPerWeek+1+rndInt(2)) : 2+rndInt(2);
-    const days = shuffleArr([0,1,2,3,4,5,6]).slice(0, numWindows).sort((a,b)=>a-b);
-    days.forEach(di=>{
-      const startHour = 6+rndInt(14);
-      const startMinOpt = [0,30][rndInt(2)];
-      const startTotal = Math.min(startHour*60+startMinOpt, 20*60);
-      const duration = 60+rndInt(4)*30;
-      const endTotal = Math.min(startTotal+duration, 21*60);
-      DATA.clientAvailability.push({ id: uid(), clientId: client.id, date: weekDateStrs[di], start: minToTime(startTotal), end: minToTime(Math.max(endTotal,startTotal+60)) });
-    });
-  }
-
-  persist();
-  return { trainers: newTrainers.length, clients: newClientCount };
-}
-document.getElementById('btnGenTestData').addEventListener('click', function(){
-  if(this.dataset.armed !== 'true'){
-    this.dataset.armed = 'true';
-    this.textContent = 'Click again to add 10 trainers + 150 clients';
-    return;
-  }
-  this.dataset.armed = 'false';
-  this.textContent = 'Generate test data';
-  const result = generateTestData();
-  UI.selectedTrainerId = DATA.trainers.length ? DATA.trainers[0].id : null;
-  UI.selectedClientId = DATA.clients.length ? DATA.clients[0].id : null;
-  renderAll();
-  alert(`Added ${result.trainers} trainers and ${result.clients} clients with a week of sample availability (this week: ${weekDates()[0].toLocaleDateString()} – ${weekDates()[6].toLocaleDateString()}). Head to the Schedule tab and try the Match finder to pair people up.`);
 });
 
 /* =======================================================================
