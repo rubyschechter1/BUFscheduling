@@ -324,6 +324,7 @@
       <button id="btnExport">Export backup (.json)</button>
       <button id="btnImport">Import backup</button>
       <input type="file" id="fileImport" accept="application/json" style="display:none;">
+      <button id="btnClearData" style="margin-top:8px; background:rgba(166,65,59,0.35); border-color:rgba(166,65,59,0.55);">Clear all data</button>
       <div class="note">Everything is saved in this browser only. Export a backup before clearing browser data or switching computers.</div>
     </div>
   </div>
@@ -1084,10 +1085,7 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
       DATA = Object.assign(Store.blank(), parsed);
       normalizeData();
       persist();
-      UI.visibleTrainers = new Set();
-      UI.visibleClients = new Set();
-      UI.highlightedClients = new Set();
-      UI.clientTypeOn = { solo:false, duo:false, either:false };
+      resetUIAfterDataReplace();
       renderAll();
     }catch(err){
       alert('That file could not be read as a Blockline backup.');
@@ -1095,6 +1093,28 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
   };
   reader.readAsText(file);
   e.target.value = '';
+});
+function resetUIAfterDataReplace(){
+  UI.visibleTrainers = new Set();
+  UI.visibleClients = new Set();
+  UI.highlightedClients = new Set();
+  UI.clientTypeOn = { solo:false, duo:false, either:false };
+  UI.availEditClientId = null;
+  UI.selectedTrainerId = DATA.trainers.length ? DATA.trainers[0].id : null;
+  UI.selectedClientId = DATA.clients.length ? DATA.clients[0].id : null;
+}
+document.getElementById('btnClearData').addEventListener('click', function(){
+  if(this.dataset.armed !== 'true'){
+    this.dataset.armed = 'true';
+    this.textContent = 'Click again to permanently delete everything';
+    return;
+  }
+  this.dataset.armed = 'false';
+  this.textContent = 'Clear all data';
+  DATA = Store.blank();
+  persist();
+  resetUIAfterDataReplace();
+  renderAll();
 });
 
 /* =======================================================================
